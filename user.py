@@ -7,6 +7,7 @@
 import os # Polkumääritykset
 import sys # Käynnistysargumentit
 import json # JSON-tiedostojen käsittely
+import requests # Kirjasto tietojen hakemiseen paikannin.com:n API-palvelusta
 
 from PySide6 import QtWidgets # Qt-vimpaimet
 from PySide6.QtCore import QThreadPool, Slot, Qt, QByteArray # Säikeistys, slot-dekoraattori ja Qt
@@ -446,21 +447,45 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.playSoundInTread('readKey.wav')
 
     # Tallennetaan palautuksen tiedot tietokantaan ja palautetaan UI alkutilaan
-    # BUG: tallentaa saman aikaleiman kaikkiin palautuksiin! Pitää rajoittaa vain palauttamattomiin autoihin
-    # WHERE reksiterinumero = 'rekisterrinumero' AND palautusaika IS NULL
     @Slot()
     def saveReturnData(self):
         # Save data to the database
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
+        # TODO: Lisää metodiin paikkatietojen haku ja tallennus paikkatieto-tauluun
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
-        dbSettings['password'] = plainTextPassword # Vaidetaan selväkieliseksi
+        dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
         dbConnection = dbOperations.DbConnection(dbSettings)
-        criteria = f"'{self.ui.keyReturnBarcodeLineEdit.text()}'" # Tekstiä -> lisää ':t
+        registerNumber = f"'{self.ui.keyReturnBarcodeLineEdit.text()}'" # Tekstiä -> lisää ':t
 
-        dbConnection.updateReturnTimeStamp('lainaus', 'palautusaika', 'rekisterinumero', criteria)
+        # dbConnection.updateReturnTimeStamp('lainaus', 'palautusaika', 'rekisterinumero', criteria)
         
+        # Haetaan palautettavan auton lainausnumero
+        lendingId = dbConnection.getNotReturnedId(registerNumber)
 
+        # Päivitetään palautuksen ajankohta
+        dbConnection2 = dbOperations.DbConnection(dbSettings)
+        dbConnection2.setReturnTimestamp(lendingId)
+
+        # Haetaan aloitus ja päättymisaika lainauksesta
+        # Päivitetään palautuksen ajankohta
+        dbConnection3 = dbOperations.DbConnection(dbSettings)
+        timeStamps = dbConnection3.getTimestamps(lendingId)
+        startTime = timeStamps[0]
+        endTime = timeStamps[1]
+
+        # Haetaan auton paikannin.com:n laitetunnus
+        dbConnection4 = dbOperations.DbConnection(dbSettings)
+        deviceId = dbConnection4.getDeviceId(registerNumber)
+
+        # Define URL for API call
+        baseurl = f'https://app.paikannin.com/public/api/devices/routes/nopoints/'
+        extension = f'{{{deviceId}}}/{{{startTime}}}/{{{endTime}}}'
+        url = baseurl + extension
+        
+        headers = {"Authorization": "Bearer"}
+
+        requests.get()
 
         self.ui.statusbar.showMessage('Auto palautettu')
         self.setInitialElements()

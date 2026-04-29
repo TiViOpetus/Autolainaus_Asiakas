@@ -9,6 +9,7 @@
 # Ladattavat kirjastot
 import psycopg2 # PostgreSQL-ajuri
 import datetime
+import json
 
 # LUOKAT
 # ------
@@ -348,6 +349,7 @@ class DbConnection():
                 cursor.close() # Tuhotaan kursori
                 currentConnection.close() # Tuhotaan yhteys
 
+    # 
     # Päivitetään taulun binäärisaraketta          
     def updateBinaryField(self, table: str, column: str, criteriaColumn: str, criteriaValue, data):
         """Updates a given bytea column in a table accordinto to a criteria
@@ -414,13 +416,196 @@ class DbConnection():
             if currentConnection:
                 cursor.close() # Tuhotaan kursori
                 currentConnection.close() # Tuhotaan yhteys
+
+
+    def getNotReturnedId(self, registernumber):
+        """Retrieves a lending id of a vehicle not returned by registernumber
+
+        Args:
+            registernumber (str): The registernumber of vehicle to be returned
+        """        
+        # Yritetään avata yhteys tietokantaan ja päivittää tietueita
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+
+            # Määritellään lopullinen SQL-lause
+            sqlClause = f"SELECT lainausnumero FROM public.lainaus WHERE rekisterinumero = '{registernumber}' AND palautusaika IS NULL"
+
+            cursor.execute(sqlClause)
+            record= cursor.fetchone()
+            lendingId = record[0]
+            return lendingId
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+
+    def getTimestamps(self, lendingId):
+        """Reads starting and ending timestamps for a given lending ID
+
+        Args:
+            lendingId (int): ID of lending transaction
+
+        Raises:
+            e: Database or OS error
+
+        Returns:
+            _tuple: Timstamps lending starts, lending ends
+        """        
+        # Yritetään avata yhteys tietokantaan ja päivittää tietueita
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+
+            # Määritellään lopullinen SQL-lause
+            sqlClause = f"SELECT lainausaika, palautusaika FROM public.lainaus WHERE lainausnumero = '{lendingId}'"
+
+            cursor.execute(sqlClause)
+            timestamps = cursor.fetchone()
+            return timestamps
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+
+
+    def setReturnTimestamp(self, lendingId):
+        """Set the lend ending timestamp for a returned vehicle
+
+        Args:
+            lendingId (int): Id for a lending event
+        """  
+        sqlClause = f"UPDATE public.lainaus SET palautusaika = CURRENT_TIMESTAMP WHERE lainausnumero = {lendingId}"      
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+            cursor.execute(sqlClause)
+
+            # Vahvistetaan tapahtuma (transaction)
+            currentConnection.commit()
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+
+
+    def addTrip(self, lendingId, tripData):
+        """Updates spatial information from trip's JSON data to a table
+
+        Args:
+            lendingId (int): Reference to lending transaction
+            tripData (json): JSON object containing place and odometer data
+        """        
         
+        # Muodostetaan JSON-datatasta arvot SQL-lausetta varten
+        data = json.loads(tripData)
+        startPlace = data["routeStartPosition"]
+        endPlace = data["routeStopPosition"]
+        alkukm = data["driveStartOdo"]
+        loppukm = data['driveStopOdo']
+        aKaupunki = startPlace["city"]
+        aKatu = startPlace["street"]
+        aKatunumero = startPlace["houseno"]
+        bKaupunki = endPlace["city"]
+        bKatu = endPlace["street"]
+        bkatunumero = endPlace["houseno"]
+
+        # Määritellään SQL-lause yksittäisen matkan osan tallentamiseksi
+        sqlClause = f"INSERT INTO public.web_paikkatieto( lainausnumero, a_kaupunki, a_katu, a_katunumero, b_kaupunki, b_katu, b_katunumero, alku_km, loppu_km) VALUES ({lendingId}, '{aKaupunki}', '{aKatu}', '{aKatunumero}', '{bKaupunki}', '{bKatu}', '{bkatunumero}', {alkukm}, {loppukm}"
+
+
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+            cursor.execute(sqlClause)
+
+            # Vahvistetaan tapahtuma (transaction)
+            currentConnection.commit()
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+
+    def getDeviceId(self, registerNumber):
+        """Retrieves paikannin.com's device ID from auto-taulu (vehicle)
+
+        Args:
+            registerNumber (str): Register number of the vehicle
+
+        Returns:
+            int: Device ID for a vehicle
+        """        
+        sqlClause = f"SELECT deviceid FROM public.auto WHERE rekisterinumero = '{registerNumber}'"
+
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+            cursor.execute(sqlClause)
+            result = cursor.fetchone()
+            deviceId = result[0]
+            return deviceId
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+        
+
+
 if __name__ == "__main__":
 
     settingsDictionary = {'server': 'localhost',
-                      'port': '5433',
-                      'database': 'testaus',
+                      'port': '5432',
+                      'database': 'autolainaus',
                       'userName': 'postgres',
-                      'password': 'Q2werty'}
+                      'password': 'Q2werty7'}
     dbconnection = DbConnection(settingsDictionary)
+
+    data = dbconnection.getNotReturnedId('FPB-343')
+    dbconnection.setReturnTimestamp(data)
     
