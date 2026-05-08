@@ -108,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
     # Säikeen käynnistävä funktio 
     @Slot(str)
-    def playSoundInTread(self, soundFileName):
+    def playSoundInThread(self, soundFileName):
         self.threadPool.start(lambda: self.playSoundFile(soundFileName))
 
     # Palauta käyttöliittymä alkutilanteeseen ja päivittää vapaiden ja 
@@ -273,7 +273,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.ui.statusbar.showMessage('Syötä ajokortti koneeseen')
         if self.ui.soundCheckBox.isChecked():
-            self.playSoundInTread('drivingLicence.wav')
+            self.playSoundInThread('drivingLicence.wav')
             
         
 
@@ -288,7 +288,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.lenderNameLabel.show()
         self.ui.statusbar.showMessage('Syötä avaimenperä koneeseen')
         if self.ui.soundCheckBox.isChecked():
-            self.playSoundInTread('readKey.wav')
+            self.playSoundInThread('readKey.wav')
 
         # Luetaan tietokannasta lainaajan nimi
         # Tietokanta-asetukset
@@ -323,7 +323,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.okPushButton.show()
         self.ui.statusbar.showMessage('Jos tiedot ovat oikein paina OK')
         if self.ui.soundCheckBox.isChecked():
-            self.playSoundInTread('saveData.wav')
+            self.playSoundInThread('saveData.wav')
 
         # Päivitetään auton tiedot 
         
@@ -419,7 +419,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.setInitialElements()
             self.ui.statusbar.showMessage('Auton lainaustiedot tallennettiin', 5000)
             if self.ui.soundCheckBox.isChecked():
-                self.playSoundInTread('lendingOk.wav')   
+                self.playSoundInThread('lendingOk.wav')   
         
         except Exception as e:
             title = 'Lainaustietojen tallentaminen ei onnistu'
@@ -444,7 +444,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.keyReturnBarcodeLineEdit.setFocus()
         self.ui.statusbar.showMessage('Lue avaimen viivakoodi')
         if self.ui.soundCheckBox.isChecked():
-            self.playSoundInTread('readKey.wav')
+            self.playSoundInThread('readKey.wav')
 
     # Tallennetaan palautuksen tiedot tietokantaan ja palautetaan UI alkutilaan
     @Slot()
@@ -478,19 +478,92 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         dbConnection4 = dbOperations.DbConnection(dbSettings)
         deviceId = dbConnection4.getDeviceId(registerNumber)
 
-        # Define URL for API call
+        # Haetaan paikannin.com:n API-avain tietokannasta
+        dbConnection5 = dbOperations.DbConnection(dbSettings)
+        apiKey = dbConnection5.getSettingsValue('paikkatietoAPI')
+
+        # Määritellään API-kutsun URL-osoite
         baseurl = f'https://app.paikannin.com/public/api/devices/routes/nopoints/'
-        extension = f'{{{deviceId}}}/{{{startTime}}}/{{{endTime}}}'
+        extension = f'{deviceId}/{startTime}/{endTime}'
         url = baseurl + extension
+
+        # Luodaan tyhjä hyötykuorma
+        payload = ""
         
-        headers = {"Authorization": "Bearer"}
+        # Määritellään HTTP-otsakkeen tietot
+        headersApi = f'{apiKey}'
+        headers = {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "API_KEY": headersApi
+        }
+        
+        # Haetaan paikkatiedot palvelimelta
+        response = requests.request("GET", url, data=payload, headers=headers)
 
-        requests.get()
+        # Muunnetaan JSON-vastaus Python-muotoon ja poimitaan HTTP-tilatieto talteen
+        responseData = response.text
+        responseStatus = str(response.status_code)
+        spatialData = json.loads(responseData)
 
+        # Jos paikkatietoja ei saada tallennetaan tietue, jonka kentät ilmaisevat tietojen puuttuvan
+        if len(spatialData) == 0:
+            tripData = {
+                'akaupunki': 'Puuttuu',
+                'akatu': 'Puuttuu',
+                'akatunumero': 'Puuttuu',
+                'bkaupunki': 'Puuttuu',
+                'bkatu': 'Puuttuu',
+                'bkatunumero': 'Puuttuu',
+                'alkukm': 0,
+                'loppukm': 0
+            }
+
+            # Näytetään varoitusdialogi
+            detailedWarningMsg = f'Location service responded with status code: {responseStatus}'
+            self.openWarning('Ajon paikkatietoja ei saatu', 'Ajon tietoja ei saatu ladattua paikannuspalvelusta', detailedWarningMsg)
+
+        else:
+                            
+             # Käydään paikkatiedot riveittäin läpi ja muodostetaan uusi sanakirja tietojen pohjalta
+            for spatialDataRow in spatialData:
+                startOdo = round(spatialDataRow['driveStartOdo'] / 1000)
+                stopOdo = round(spatialDataRow['driveStopOdo'] / 1000)
+                startPlace = spatialDataRow['routeStartPosition']
+                stopPlace = spatialDataRow['routeStopPosition']
+
+                aCity = startPlace['city']
+                aStreet = startPlace['street']
+                aNumber = startPlace['houseno']
+
+
+                bCity = stopPlace['city']
+                bStreet = stopPlace['street']
+                bNumber = stopPlace['houseno']
+
+                # Sanakirja tietojen tallentamiseksi tietokantaan
+                tripData = {
+                    'akaupunki': aCity,
+                    'akatu': aStreet,
+                    'akatunumero': aNumber,
+                    'bkaupunki': bCity,
+                    'bkatu': bStreet,
+                    'bkatunumero': bNumber,
+                    'alkukm': startOdo,
+                    'loppukm': stopOdo
+                }
+        
+       
+        # Tallennetaan tietot tietokantaan
+        dbConnection7 = dbOperations.DbConnection(dbSettings)
+        dbConnection7.addTrip(lendingId,tripData)
+
+        # Ilmoitetaan tilarivillä auton palautuksen onnistumisesta
         self.ui.statusbar.showMessage('Auto palautettu')
         self.setInitialElements()
         if self.ui.soundCheckBox.isChecked():
-            self.playSoundInTread('returnOk.wav')
+            self.playSoundInThread('returnOk.wav')
 
     
     @Slot()

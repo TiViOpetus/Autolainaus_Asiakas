@@ -424,7 +424,7 @@ class DbConnection():
         Args:
             registernumber (str): The registernumber of vehicle to be returned
         """        
-        # Yritetään avata yhteys tietokantaan ja päivittää tietueita
+        # Yritetään avata yhteys tietokantaan ja hakea tiedot
         try:
             # Luodaan yhteys tietokantaan
             currentConnection = psycopg2.connect(self.connectionString)
@@ -449,7 +449,45 @@ class DbConnection():
             if currentConnection:
                 cursor.close() # Tuhotaan kursori
                 currentConnection.close() # Tuhotaan yhteys
+    
+    
+    
+    def getSettingsValue(self, key):
+        """Get a setting value from database
 
+        Args:
+            key (str): Key for the setting to get
+
+        Returns:
+            str: Value for the setting
+        """        
+        # Yritetään avata yhteys tietokantaan ja hakea tiedot
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+
+            # Määritellään lopullinen SQL-lause
+            sqlClause = f"SELECT arvo FROM public.asetus WHERE avain = '{key}'"
+
+            cursor.execute(sqlClause)
+            record= cursor.fetchone()
+            value = record[0]
+            return value
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+    
+    
     def getTimestamps(self, lendingId):
         """Reads starting and ending timestamps for a given lending ID
 
@@ -522,21 +560,19 @@ class DbConnection():
 
         Args:
             lendingId (int): Reference to lending transaction
-            tripData (json): JSON object containing place and odometer data
+            tripData (dict): Dictionary containing place and odometer data
         """        
         
         # Muodostetaan JSON-datatasta arvot SQL-lausetta varten
-        data = json.loads(tripData)
-        startPlace = data["routeStartPosition"]
-        endPlace = data["routeStopPosition"]
-        alkukm = data["driveStartOdo"]
-        loppukm = data['driveStopOdo']
-        aKaupunki = startPlace["city"]
-        aKatu = startPlace["street"]
-        aKatunumero = startPlace["houseno"]
-        bKaupunki = endPlace["city"]
-        bKatu = endPlace["street"]
-        bkatunumero = endPlace["houseno"]
+        
+        aKaupunki = tripData['aKaupunki']
+        aKatu = tripData['aKatu']
+        aKatunumero = tripData['aKatunumero']
+        bKaupunki = tripData['bKaupunki']
+        bKatu = tripData['bKatu']
+        bkatunumero = tripData['bkatunumero']
+        alkukm = tripData['alkukm']
+        loppukm = tripData['loppukm']
 
         # Määritellään SQL-lause yksittäisen matkan osan tallentamiseksi
         sqlClause = f"INSERT INTO public.web_paikkatieto( lainausnumero, a_kaupunki, a_katu, a_katunumero, b_kaupunki, b_katu, b_katunumero, alku_km, loppu_km) VALUES ({lendingId}, '{aKaupunki}', '{aKatu}', '{aKatunumero}', '{bKaupunki}', '{bKatu}', '{bkatunumero}', {alkukm}, {loppukm}"
