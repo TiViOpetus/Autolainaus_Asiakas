@@ -319,7 +319,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Auto-osaston ajoneuvojen lainaus", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Rasekon ajoneuvojen lainaus", None))
         self.ssnLineEdit.setText("")
         self.ssnLineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Lue ajokortti", None))
 #if QT_CONFIG(tooltip)

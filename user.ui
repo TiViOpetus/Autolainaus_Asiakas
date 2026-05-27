@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Auto-osaston ajoneuvojen lainaus</string>
+   <string>Rasekon ajoneuvojen lainaus</string>
   </property>
   <property name="windowIcon">
    <iconset theme="emblem-shared"/>

@@ -7,6 +7,12 @@
 import os # Polkumääritykset
 import sys # Käynnistysargumentit
 import json # JSON-tiedostojen käsittely
+import requests
+from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 from PySide6 import QtWidgets # Qt-vimpaimet
 from PySide6.QtCore import QThreadPool, Slot, Qt, QByteArray # Säikeistys, slot-dekoraattori ja Qt
@@ -14,7 +20,6 @@ from PySide6.QtGui import QPixmap, QCursor # Kuvan luku ja kursorin muutokset
 
 from lendingModules import sound # Äänitoiminnot
 from lendingModules import dbOperations # Tietokantatoiminnot
-from lendingModules import cipher # Salausmoduuli
 
 # mainWindow_ui:n tilalle käännetyn pääikkunan tiedoston nimi
 # ilman .py-tiedostopäätettä
@@ -37,21 +42,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Kutsutaan käyttöliittymän muodostusmetodia setupUi
         self.ui.setupUi(self)
    
-        # Rutiini, joka lukee asetukset, jos ne ovat olemassa
+        # Load database settings from environment variables instead of settings.json
         try:
-            # Avataam asetustiedosto ja muutetaan se Python sanakirjaksi
-            with open('settings.json', 'rt') as settingsFile: # With sulkee tiedoston automaattisesti
-                
-                jsonData = settingsFile.read()
-                self.currentSettings = json.loads(jsonData)
-            
-            # Puretaan salasana tietokantaoperaatioita varten  
-            self.plainTextPassword = cipher.decryptString(self.currentSettings['password'])
+            self.currentSettings = {
+                'server': os.getenv('DB_HOST', 'localhost'),
+                'port': os.getenv('DB_PORT', '5432'),
+                'database': os.getenv('DB', 'autolainaus'),
+                'userName': os.getenv('DB_USER', 'autolainaus'),
+                'password': os.getenv('DB_PLAIN_PASSWORD', ''),  # Using plain text from .env
+                # Optional department filter (set by administrative settings)
+                'department': os.getenv('DEPARTMENT') or os.getenv('OSASTO') or None,
+                'paikanninApiUrl': os.getenv('PAIKANNIN_API_URL', 'https://app.paikannin.com'),
+                'paikanninDeviceId': os.getenv('PAIKANNIN_DEVICE_ID', ''),
+                'paikanninApiKey': os.getenv('PAIKANNIN_API_KEY', ''),
+                'paikanninApiKeyHeader': os.getenv('PAIKANNIN_API_KEY_HEADER', 'Authorization'),
+                'paikanninApiKeyPrefix': os.getenv('PAIKANNIN_API_KEY_PREFIX', 'Bearer '),
+                'paikanninTimeoutSeconds': int(os.getenv('PAIKANNIN_TIMEOUT_SECONDS', '10')),
+            }
+            self.plainTextPassword = self.currentSettings['password']
+            # Also accept department set in settings.json (admin UI may write here)
+            try:
+                settings_path = os.path.join(os.path.dirname(__file__), 'settings.json')
+                if os.path.exists(settings_path):
+                    with open(settings_path, 'r', encoding='utf-8') as sf:
+                        file_settings = json.load(sf)
+                        dept = file_settings.get('department') or file_settings.get('osasto')
+                        if dept:
+                            self.currentSettings['department'] = dept
+            except Exception:
+                # Ignore failures reading admin settings file; fallback to env
+                pass
         
-        # Jos asetusten luku ei onnistu, näytetään virhedialogi
         except Exception as error:
-            title = 'Tietokanta-asetusten luku ei onnistunut'
-            text = 'Tietokanta-asetuksien avaaminen ja salasanan purku ei onnistunut'
+            title = 'Ympäristömuuttujien luku ei onnistunut'
+            text = 'Tietokanta-asetuksien avaaminen .env-tiedostosta ei onnistunut'
             detailedText = str(error)
             self.openWarning(title, text, detailedText)      
 
@@ -154,7 +178,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Palautetaan auton oletuskuva
         self.ui.vehiclePictureLabel.setPixmap(self.defaultVehiclePicture)
         
-        
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
@@ -163,8 +186,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             # Luodaan tietokantayhteys-olio
             dbConnection = dbOperations.DbConnection(dbSettings)
-            # Luetaan ajossa näkymästä lista, jonka jäsenet ovat monikoita (tuple)
-            inUseVehicles = dbConnection.readAllColumnsFromTable('ajossa')
+
+            # Prefer DB-side helper if available (more robust SQL filtering)
+            dept = self.currentSettings.get('department') or os.getenv('DEPARTMENT') or os.getenv('OSASTO')
+            inUseVehicles = []
+            if dept:
+                try:
+                    inUseVehicles = dbConnection.getVehiclesInUse(dept)
+                except Exception:
+                    inUseVehicles = self._readTableWithOptionalDepartmentFilter(dbConnection, 'ajossa')
+            else:
+                inUseVehicles = self._readTableWithOptionalDepartmentFilter(dbConnection, 'ajossa')
 
             # Alustetaan tyhjä lista muokattuja autotietoja varten
             modifiedInUseVehiclesList = []
@@ -200,13 +232,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             text = 'Ajossa olevien autojen tiedot eivät ole saatavissa'
             detailedText = str(e)
             self.openWarning(title, text, detailedText) 
-    
         try:
-            # Luodaan tietokantayhteys-olio
+            # Luodaan tietokantayhteys-olio ja luetaan vapaat autot
             dbConnection = dbOperations.DbConnection(dbSettings)
-            freeVehicles = dbConnection.readAllColumnsFromTable('vapaana')
-            
-            # Muodostetaan luettelo vapaista autoista createCatalog-metodilla
+            dept = self.currentSettings.get('department') or os.getenv('DEPARTMENT') or os.getenv('OSASTO')
+            if dept:
+                try:
+                    freeVehicles = dbConnection.getVehiclesFree(dept)
+                except Exception:
+                    freeVehicles = self._readTableWithOptionalDepartmentFilter(dbConnection, 'vapaana')
+            else:
+                freeVehicles = self._readTableWithOptionalDepartmentFilter(dbConnection, 'vapaana')
             catalogData = self.createCatalog(freeVehicles, 'paikkaa')
             self.ui.availablePlainTextEdit.setPlainText(catalogData)
 
@@ -226,6 +262,42 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.returnCarPushButton.setEnabled(False)
         else:
             self.ui.returnCarPushButton.setEnabled(True)
+
+    def _readTableWithOptionalDepartmentFilter(self, dbConnection, table: str):
+        """Reads all rows from a table, applying a department filter if configured.
+
+        Returns full table when no department is configured or when table has no
+        recognizable department column.
+        """
+        dept = self.currentSettings.get('department') or os.getenv('DEPARTMENT') or os.getenv('OSASTO')
+        if not dept:
+            return dbConnection.readAllColumnsFromTable(table)
+
+        try:
+            cols = dbConnection.readTableColumns(table)
+        except Exception:
+            return dbConnection.readAllColumnsFromTable(table)
+
+        possible_names = ['osasto', 'department', 'osastokoodi', 'osastonimi', 'osastotunnus', 'dept']
+        for name in possible_names:
+            if name in cols:
+                try:
+                    # Read all rows once and filter in Python to avoid exact-string mismatches.
+                    rows = dbConnection.readAllColumnsFromTable(table)
+                    dept_index = cols.index(name)
+                    normalized_department = str(dept).strip().casefold()
+                    filtered_rows = []
+                    for row in rows:
+                        if len(row) <= dept_index:
+                            continue
+                        row_department = str(row[dept_index]).strip().casefold()
+                        if row_department == normalized_department:
+                            filtered_rows.append(row)
+                    return filtered_rows
+                except Exception:
+                    return dbConnection.readAllColumnsFromTable(table)
+
+        return dbConnection.readAllColumnsFromTable(table)
 
     # Näyttää ajon tarkoitus -yhdistelmäruudun
     @Slot()
@@ -446,26 +518,163 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.playSoundInTread('readKey.wav')
 
     # Tallennetaan palautuksen tiedot tietokantaan ja palautetaan UI alkutilaan
-    # BUG: tallentaa saman aikaleiman kaikkiin palautuksiin! Pitää rajoittaa vain palauttamattomiin autoihin
-    # WHERE reksiterinumero = 'rekisterrinumero' AND palautusaika IS NULL
     @Slot()
     def saveReturnData(self):
         # Save data to the database
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
+        # Luetaan tietokanta-asetukset
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
-        dbSettings['password'] = plainTextPassword # Vaidetaan selväkieliseksi
+        dbSettings['password'] = plainTextPassword
+
         dbConnection = dbOperations.DbConnection(dbSettings)
-        criteria = f"'{self.ui.keyReturnBarcodeLineEdit.text()}'" # Tekstiä -> lisää ':t
+        registrationNumber = self.ui.keyReturnBarcodeLineEdit.text().strip()
+        loanNumber = None
+        tripWarningMessage = None
 
-        dbConnection.updateReturnTimeStamp('lainaus', 'palautusaika', 'rekisterinumero', criteria)
-        
+        # 1) Haetaan aktiivinen lainausnumero rekisterinumerolla.
+        try:
+            loanNumber = dbConnection.getNotReturnedId(registrationNumber)
+            # Fallback: jos avoimea lainausta ei löydy, käytä viimeisintä lainaa
+            if loanNumber is None:
+                loanNumber = dbConnection.getLatestLoanNumberForRegistration(registrationNumber)
+            if loanNumber is None:
+                raise ValueError("Palautettavaa lainausta ei löytynyt")
 
+        except Exception as e:
+            self.openWarning(
+                'Auton palautus ei onnistunut',
+                'Palautettavaa lainausta ei loytynyt',
+                str(e)
+            )
+            return
 
-        self.ui.statusbar.showMessage('Auto palautettu')
+        # 2) Paivitetaan palautusaika loydetylle lainausnumerolle.
+        try:
+            print(f'DEBUG: Attempting to set return timestamp for loanNumber={loanNumber}')
+            dbConnection.setReturnTimestamp(loanNumber)
+            print(f'DEBUG: Return timestamp set successfully')
+
+        except Exception as e:
+            print(f'DEBUG: Error setting return timestamp: {type(e).__name__}: {str(e)}')
+            self.openWarning(
+                'Auton palautus ei onnistunut',
+                'Palautusajan paivitys epaonnistui',
+                str(e)
+            )
+            return
+
+        # 3) Haetaan paikannindata ja tallennetaan web_paikkatieto-tauluun.
+        # Vaihe ei estä itse palautusta.
+        try:
+            locationData = self.fetchPaikanninData(registrationNumber, loanNumber)
+            if not locationData:
+                tripWarningMessage = 'Paikannin ei palauttanut paikkatietoja'
+            else:
+                # Try modern mapping first
+                try:
+                    saved = dbConnection.saveWebPaikkatietoData(
+                        registrationNumber,
+                        loanNumber,
+                        locationData,
+                    )
+                except Exception as e:
+                    saved = False
+                    tripWarningMessage = f'Paikkatietojen tallennus epäonnistui: {str(e)}'
+
+                if not saved:
+                    # Vanha reittimuoto on edelleen tuettu, jos API palauttaa legacy-rakenteen.
+                    tripData = locationData
+                    if isinstance(locationData, dict):
+                        tripData = dict(locationData)
+                        tripData.setdefault('lainausnumero', loanNumber)
+                        tripData.setdefault('rekisterinumero', registrationNumber)
+                    elif isinstance(locationData, list) and locationData and isinstance(locationData[-1], dict):
+                        tripData = dict(locationData[-1])
+                        tripData.setdefault('lainausnumero', loanNumber)
+                        tripData.setdefault('rekisterinumero', registrationNumber)
+
+                    try:
+                        dbConnection.addTrip(tripData)
+                        # clear any previous warning since addTrip succeeded
+                        tripWarningMessage = None
+                    except Exception as e:
+                        tripWarningMessage = f'Paikkatiedon tallennus ohitettiin: {str(e)}'
+
+        except Exception as e:
+            tripWarningMessage = f'Paikkatietojen haku/tallennus ei onnistunut: {str(e)}'
+
+        # UI reset
         self.setInitialElements()
+        if tripWarningMessage:
+            self.ui.statusbar.showMessage(f'Auto palautettu, mutta {tripWarningMessage}', 9000)
+        else:
+            self.ui.statusbar.showMessage('Auto palautettu')
+
         if self.ui.soundCheckBox.isChecked():
             self.playSoundInTread('returnOk.wav')
+
+    def fetchPaikanninData(self, registrationNumber: str, loanNumber):
+        """Fetches location data from a configured paikannin endpoint.
+
+        The exact API endpoint is configuration-dependent, so this method uses
+        a URL from the application settings when available.
+        """
+
+        # Load from .env file or environment variables
+        paikanninUrl = os.getenv('PAIKANNIN_API_URL')
+        apiKey = os.getenv('PAIKANNIN_API_KEY')
+
+        if not paikanninUrl or not apiKey:
+            return None
+
+        apiKeyHeaderName = os.getenv('PAIKANNIN_API_KEY_HEADER', 'Authorization')
+        apiKeyPrefix = os.getenv('PAIKANNIN_API_KEY_PREFIX', 'Bearer ')
+        timeoutSeconds = int(os.getenv('PAIKANNIN_TIMEOUT_SECONDS', '10'))
+
+        headers = {apiKeyHeaderName: f'{apiKeyPrefix}{apiKey}' if apiKeyPrefix else apiKey}
+
+        requestUrl = paikanninUrl
+        if '{' in paikanninUrl and '}' in paikanninUrl:
+            endTime = self.currentSettings.get('paikanninEndTime')
+            startTime = self.currentSettings.get('paikanninStartTime')
+
+            # Jos aikaa ei ole asetettu, kaytetaan oletuksena viimeiset 24 h UTC-aikana.
+            if not endTime:
+                endTime = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+            if not startTime:
+                startTime = (datetime.now(timezone.utc).replace(microsecond=0) - timedelta(hours=24)).isoformat().replace('+00:00', 'Z')
+
+            deviceId = os.getenv('PAIKANNIN_DEVICE_ID') or registrationNumber
+            templateValues = {
+                'registrationNumber': registrationNumber,
+                'rekisterinumero': registrationNumber,
+                'loanNumber': loanNumber,
+                'lainausnumero': loanNumber,
+                'deviceId': deviceId,
+                'startTime': startTime,
+                'endTime': endTime,
+            }
+
+            for key, value in templateValues.items():
+                if value is not None:
+                    requestUrl = requestUrl.replace('{' + key + '}', str(value))
+
+            if '{' in requestUrl and '}' in requestUrl:
+                raise ValueError(f'Paikannin URL:ssa on korvaamattomia paikkamerkkeja: {requestUrl}')
+
+        try:
+            response = requests.get(
+                requestUrl,
+                headers=headers,
+                timeout=timeoutSeconds,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f'Paikannin API-kutsu epäonnistui: {str(e)}') from e
+        except ValueError as e:
+            raise ValueError(f'Paikannin API ei palauttanut JSON-dataa osoitteesta: {requestUrl}') from e
 
     
     @Slot()
@@ -477,16 +686,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def createCatalog(self, tupleList: list, suffix='') -> str:
         """Creates a catalog like text for plainText edits from list of tuples.
         Typically list comes from a database table or view.
-
-        Args:
-            tupleList (list): list of tuples containing table data
-            suffix (str, optional): a phrase to add to the end of the line. Defaults to ''.
-
-        Returns:
-            str: Plain text for the catalog
         """
-        # Määritellään vapaana oleliven autojen tiedot
-        # availablePlainTextEdit-elementtiin
         catalogData = ''
         rowText = ''
             
