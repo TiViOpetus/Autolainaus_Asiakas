@@ -86,6 +86,8 @@ def saveReturnData():
     # Convert responset to python format
     responseData = response.text
     spatialData = json.loads(responseData)
+    responseStatus = str(response.status_code)
+    print(responseStatus)
     
     # Loop spatial data to get route legs, odometer values and places
     for spatialDataRow in spatialData:
@@ -94,17 +96,18 @@ def saveReturnData():
         startPlace = spatialDataRow['routeStartPosition']
         stopPlace = spatialDataRow['routeStopPosition']
 
+        fromFieldText = f"'{startPlace['street']} {startPlace['houseno']} {startPlace['city']}'"
         a_kaupunki = startPlace['city']
         a_katu = startPlace['street']
         a_katunumero = startPlace['houseno']
 
-
+        toFieldText = f"'{stopPlace['street']} {stopPlace['houseno']} {stopPlace['city']}'"
         b_kaupunki = stopPlace['city']
         b_katu = stopPlace['street']
         b_katunumero = stopPlace['houseno']
 
-        print('Mistä', startPlace, startOdo)
-        print('Mihin', stopPlace, stopOdo)
+        print('Mistä', fromFieldText, startOdo)
+        print('Mihin', toFieldText, stopOdo)
         
 
 saveReturnData()

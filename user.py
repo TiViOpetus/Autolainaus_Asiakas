@@ -505,6 +505,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
         
         # Haetaan paikkatiedot palvelimelta
+        # TODO: Muutetaan tämä niin, että:
+        # 1. Haetaan API-avain tietokannasta getSettingsValue(self, key)-metodilla
+        # 2. Haetaan auton deviceID auto-taulusta getDeviceId(registerNumber)-metodilla
+        # 3. Kutsutaan getNoPointsRoutes(self, deviceId, startTime, endTime)-metodia spatialdata-moduulista
+        # 4. Tallennetaan tulosjoukko tauluun ajon_paikat (tee) kohdan 3 tulosjoukon perusteella
 
         try:
             response = requests.request("GET", url, data=payload, headers=headers)
