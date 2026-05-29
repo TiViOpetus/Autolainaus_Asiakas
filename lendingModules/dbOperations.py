@@ -139,7 +139,7 @@ class DbConnection():
             list: List of tuples. One tuple contains a row
         """
 
-        # Yritetään avata yhteys tietokantaan ja lisätä tietue
+        # Yritetään avata yhteys tietokantaan ja luetaan tietueet
         try:
             # Luodaan yhteys tietokantaan
             currentConnection = psycopg2.connect(self.connectionString)
@@ -630,8 +630,58 @@ class DbConnection():
             if currentConnection:
                 cursor.close() # Tuhotaan kursori
                 currentConnection.close() # Tuhotaan yhteys
-        
 
+    # Haetaan osaston vapaat ajoneuvot
+    def getVehiclesFree(self, division):
+        sqlClause = f"SELECT rekisterinumero, merkki, malli, automaatti, henkilomaara FROM public.vapaana WHERE osasto = '{division}'"
+        # Yritetään avata yhteys tietokantaan ja hakea tiedot
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+         # Suoritetaan SQL-lause ja luetaan tulokset kursorista
+            cursor.execute(sqlClause)
+            records= cursor.fetchall()
+            return records
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
+       
+    # Haetaan osaston ajossa olevat ajoneuvot
+    def getVehiclesInUse(self, division):
+        sqlClause = f"SELECT rekisterinumero, merkki, malli, automaatti, henkilomaara, kuljettaja FROM public.ajossa WHERE osasto = '{division}'"
+        # Yritetään avata yhteys tietokantaan ja hakea tiedot
+        try:
+            # Luodaan yhteys tietokantaan
+            currentConnection = psycopg2.connect(self.connectionString)
+
+            # Luodaan kursori suorittamaan tietokantoperaatiota
+            cursor = currentConnection.cursor()
+         # Suoritetaan SQL-lause ja luetaan tulokset kursorista
+            cursor.execute(sqlClause)
+            records= cursor.fetchall()
+            return records
+
+        # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
+        except (Exception, psycopg2.Error) as e:
+            raise e 
+        
+        finally:
+
+            # Selvitetään muodostuiko yhteysolio
+            if currentConnection:
+                cursor.close() # Tuhotaan kursori
+                currentConnection.close() # Tuhotaan yhteys
 
 if __name__ == "__main__":
 
@@ -642,6 +692,9 @@ if __name__ == "__main__":
                       'password': 'Q2werty7'}
     dbconnection = DbConnection(settingsDictionary)
 
-    data = dbconnection.getNotReturnedId('FPB-343')
-    dbconnection.setReturnTimestamp(data)
-    
+    # data = dbconnection.getNotReturnedId('FPB-343')
+    # dbconnection.setReturnTimestamp(data)
+    data = dbconnection.getVehiclesFree('Auto')
+    print('Vapaana:', data)
+    data2 = dbconnection.getVehiclesInUse('Auto')
+    print('Ajossa:', data2)

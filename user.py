@@ -40,7 +40,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
    
         # Rutiini, joka lukee asetukset, jos ne ovat olemassa
         try:
-            # Avataam asetustiedosto ja muutetaan se Python sanakirjaksi
+            # Avataan asetustiedosto ja muutetaan se Python sanakirjaksi
             with open('settings.json', 'rt') as settingsFile: # With sulkee tiedoston automaattisesti
                 
                 jsonData = settingsFile.read()
@@ -48,7 +48,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             # Puretaan salasana tietokantaoperaatioita varten  
             self.plainTextPassword = cipher.decryptString(self.currentSettings['password'])
-        
+
+            # Tallennetaan osastotieto autojen suodattamista varten
+            self.division = self.currentSettings['division']
+            
+
         # Jos asetusten luku ei onnistu, näytetään virhedialogi
         except Exception as error:
             title = 'Tietokanta-asetusten luku ei onnistunut'
@@ -164,8 +168,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             # Luodaan tietokantayhteys-olio
             dbConnection = dbOperations.DbConnection(dbSettings)
+
             # Luetaan ajossa näkymästä lista, jonka jäsenet ovat monikoita (tuple)
-            inUseVehicles = dbConnection.readAllColumnsFromTable('ajossa')
+            inUseVehicles = dbConnection.getVehiclesInUse(self.division)
 
             # Alustetaan tyhjä lista muokattuja autotietoja varten
             modifiedInUseVehiclesList = []
@@ -205,7 +210,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             # Luodaan tietokantayhteys-olio
             dbConnection = dbOperations.DbConnection(dbSettings)
-            freeVehicles = dbConnection.readAllColumnsFromTable('vapaana')
+            freeVehicles = dbConnection.getVehiclesFree(self.division)
             
             # Muodostetaan luettelo vapaista autoista createCatalog-metodilla
             catalogData = self.createCatalog(freeVehicles, 'paikkaa')
@@ -456,7 +461,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         plainTextPassword = self.plainTextPassword
         dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
         dbConnection = dbOperations.DbConnection(dbSettings)
-        registerNumber = f"'{self.ui.keyReturnBarcodeLineEdit.text()}'" # Tekstiä -> lisää ':t
+        registerNumber = f"{self.ui.keyReturnBarcodeLineEdit.text()}" # Tekstiä -> lisää ':t
 
         # dbConnection.updateReturnTimeStamp('lainaus', 'palautusaika', 'rekisterinumero', criteria)
         
@@ -500,33 +505,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
         
         # Haetaan paikkatiedot palvelimelta
-        response = requests.request("GET", url, data=payload, headers=headers)
 
-        # Muunnetaan JSON-vastaus Python-muotoon ja poimitaan HTTP-tilatieto talteen
-        responseData = response.text
-        responseStatus = str(response.status_code)
-        spatialData = json.loads(responseData)
+        try:
+            response = requests.request("GET", url, data=payload, headers=headers)
 
-        # Jos paikkatietoja ei saada tallennetaan tietue, jonka kentät ilmaisevat tietojen puuttuvan
-        if len(spatialData) == 0:
-            tripData = {
-                'akaupunki': 'Puuttuu',
-                'akatu': 'Puuttuu',
-                'akatunumero': 'Puuttuu',
-                'bkaupunki': 'Puuttuu',
-                'bkatu': 'Puuttuu',
-                'bkatunumero': 'Puuttuu',
-                'alkukm': 0,
-                'loppukm': 0
-            }
+            # Muunnetaan JSON-vastaus Python-muotoon ja poimitaan HTTP-tilatieto talteen
+            responseData = response.text
+            responseStatus = str(response.status_code)
+            print(responseStatus)
+            if responseStatus >= 200:
+                raise Exception('Spatial query failed')
+            spatialData = json.loads(responseData)
+            print(spatialData)
 
-            # Näytetään varoitusdialogi
-            detailedWarningMsg = f'Location service responded with status code: {responseStatus}'
-            self.openWarning('Ajon paikkatietoja ei saatu', 'Ajon tietoja ei saatu ladattua paikannuspalvelusta', detailedWarningMsg)
-
-        else:
-                            
-             # Käydään paikkatiedot riveittäin läpi ja muodostetaan uusi sanakirja tietojen pohjalta
+            # Käydään paikkatiedot riveittäin läpi ja muodostetaan uusi sanakirja tietojen pohjalta
             for spatialDataRow in spatialData:
                 startOdo = round(spatialDataRow['driveStartOdo'] / 1000)
                 stopOdo = round(spatialDataRow['driveStopOdo'] / 1000)
@@ -553,11 +545,37 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     'alkukm': startOdo,
                     'loppukm': stopOdo
                 }
+        except:
+            print('Something went wrong')
+        finally:
+            print('The try except is finished')
+        
+
+        # Jos paikkatietoja ei saada tallennetaan tietue, jonka kentät ilmaisevat tietojen puuttuvan
+        if len(spatialData) == 0:
+            tripData = {
+                'akaupunki': 'Puuttuu',
+                'akatu': 'Puuttuu',
+                'akatunumero': 'Puuttuu',
+                'bkaupunki': 'Puuttuu',
+                'bkatu': 'Puuttuu',
+                'bkatunumero': 'Puuttuu',
+                'alkukm': 0,
+                'loppukm': 0
+            }
+
+            # Näytetään varoitusdialogi
+            detailedWarningMsg = f'Location service responded with status code: {responseStatus}'
+            self.openWarning('Ajon paikkatietoja ei saatu', 'Ajon tietoja ei saatu ladattua paikannuspalvelusta', detailedWarningMsg)
+
+        else:
+                            
+            
         
        
-        # Tallennetaan tietot tietokantaan
-        dbConnection7 = dbOperations.DbConnection(dbSettings)
-        dbConnection7.addTrip(lendingId,tripData)
+            # Tallennetaan tietot tietokantaan
+            dbConnection7 = dbOperations.DbConnection(dbSettings)
+            dbConnection7.addTrip(lendingId,tripData)
 
         # Ilmoitetaan tilarivillä auton palautuksen onnistumisesta
         self.ui.statusbar.showMessage('Auto palautettu')
