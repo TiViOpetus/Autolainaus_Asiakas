@@ -7,10 +7,9 @@
 import os # Polkumääritykset
 import sys # Käynnistysargumentit
 import json # JSON-tiedostojen käsittely
-import requests # Kirjasto tietojen hakemiseen paikannin.com:n API-palvelusta
 
 from PySide6 import QtWidgets # Qt-vimpaimet
-from PySide6.QtCore import QThreadPool, Slot, Qt, QByteArray # Säikeistys, slot-dekoraattori ja Qt
+from PySide6.QtCore import QThreadPool, Slot, Qt, QByteArray # Säikeistys, slot-dekoraattori, Qt ja QByteArray tietokantaan tallennetun kuvadatan käsittelyyn
 from PySide6.QtGui import QPixmap, QCursor # Kuvan luku ja kursorin muutokset
 
 from lendingModules import sound # Äänitoiminnot
@@ -18,8 +17,6 @@ from lendingModules import dbOperations # Tietokantatoiminnot
 from lendingModules import cipher # Salausmoduuli
 from lendingModules import spatialdata # Paikannin.com API-kutsut
 
-# mainWindow_ui:n tilalle käännetyn pääikkunan tiedoston nimi
-# ilman .py-tiedostopäätettä
 from user_ui import Ui_MainWindow # Käännetyn käyttöliittymän luokka
 
 # Määritellään luokka, joka perii QMainWindow- ja Ui_MainWindow-luokan
