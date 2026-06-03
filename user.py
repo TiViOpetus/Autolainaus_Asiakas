@@ -1,5 +1,4 @@
-# PYSIDE6-MALLINE SOVELLUKSEN PÄÄIKKUNAN LUOMISEEN
-# KÄÄNNETYSTÄ KÄYTTÖLIITTYMÄTIEDOSTOSTA (mainWindow_ui.py)
+# RASEKO:N AUTOLAINAUSJRÄJESTELMÄN ASIAKASSOVELLUS 2026
 # =====================================================
 
 # KIRJASTOJEN JA MODUULIEN LATAUKSET
@@ -406,7 +405,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
-        dbSettings['password'] = plainTextPassword # Vaidetaan selväkieliseksi
+        dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
 
         try:
             # Luodaan tietokantayhteys-olio
