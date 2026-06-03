@@ -16,6 +16,7 @@ from PySide6.QtGui import QPixmap, QCursor # Kuvan luku ja kursorin muutokset
 from lendingModules import sound # Äänitoiminnot
 from lendingModules import dbOperations # Tietokantatoiminnot
 from lendingModules import cipher # Salausmoduuli
+from lendingModules import spatialdata # Paikannin.com API-kutsut
 
 # mainWindow_ui:n tilalle käännetyn pääikkunan tiedoston nimi
 # ilman .py-tiedostopäätettä
@@ -454,139 +455,74 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Tallennetaan palautuksen tiedot tietokantaan ja palautetaan UI alkutilaan
     @Slot()
     def saveReturnData(self):
-        # Save data to the database
-        # Luetaan tietokanta-asetukset paikallisiin muuttujiin
-        # TODO: Lisää metodiin paikkatietojen haku ja tallennus paikkatieto-tauluun
+        
+        # Luetaan tietokanta-asetukset asetustiedostosta ja puretaan salasanan salaus
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
         dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
-        dbConnection = dbOperations.DbConnection(dbSettings)
-        registerNumber = f"{self.ui.keyReturnBarcodeLineEdit.text()}" # Tekstiä -> lisää ':t
 
-        # dbConnection.updateReturnTimeStamp('lainaus', 'palautusaika', 'rekisterinumero', criteria)
-        
-        # Haetaan palautettavan auton lainausnumero
-        lendingId = dbConnection.getNotReturnedId(registerNumber)
-
-        # Päivitetään palautuksen ajankohta
-        dbConnection2 = dbOperations.DbConnection(dbSettings)
-        dbConnection2.setReturnTimestamp(lendingId)
-
-        # Haetaan aloitus ja päättymisaika lainauksesta
-        # Päivitetään palautuksen ajankohta
-        dbConnection3 = dbOperations.DbConnection(dbSettings)
-        timeStamps = dbConnection3.getTimestamps(lendingId)
-        startTime = timeStamps[0]
-        endTime = timeStamps[1]
-
-        # Haetaan auton paikannin.com:n laitetunnus
-        dbConnection4 = dbOperations.DbConnection(dbSettings)
-        deviceId = dbConnection4.getDeviceId(registerNumber)
-
-        # Haetaan paikannin.com:n API-avain tietokannasta
-        dbConnection5 = dbOperations.DbConnection(dbSettings)
-        apiKey = dbConnection5.getSettingsValue('paikkatietoAPI')
-
-        # Määritellään API-kutsun URL-osoite
-        baseurl = f'https://app.paikannin.com/public/api/devices/routes/nopoints/'
-        extension = f'{deviceId}/{startTime}/{endTime}'
-        url = baseurl + extension
-
-        # Luodaan tyhjä hyötykuorma
-        payload = ""
-        
-        # Määritellään HTTP-otsakkeen tietot
-        headersApi = f'{apiKey}'
-        headers = {
-        "Accept": "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "API_KEY": headersApi
-        }
-        
-        # Haetaan paikkatiedot palvelimelta
-        # TODO: Muutetaan tämä niin, että:
-        # 1. Haetaan API-avain tietokannasta getSettingsValue(self, key)-metodilla
-        # 2. Haetaan auton deviceID auto-taulusta getDeviceId(registerNumber)-metodilla
-        # 3. Kutsutaan getNoPointsRoutes(self, deviceId, startTime, endTime)-metodia spatialdata-moduulista
-        # 4. Tallennetaan tulosjoukko tauluun ajon_paikat (tee) kohdan 3 tulosjoukon perusteella
-
+        # Haetaan tiedot tietokannasta ja paikannin.com-palvelusta
         try:
-            response = requests.request("GET", url, data=payload, headers=headers)
+            # Asetetetaan tilarivin teksti kaikilta osin onnistuneesta palautuksesta
+            statusMessage = 'Auto palautettu'
+            statusSound = 'returnOk.wav'
 
-            # Muunnetaan JSON-vastaus Python-muotoon ja poimitaan HTTP-tilatieto talteen
-            responseData = response.text
-            responseStatus = str(response.status_code)
-            print(responseStatus)
-            if responseStatus >= 200:
-                raise Exception('Spatial query failed')
-            spatialData = json.loads(responseData)
-            print(spatialData)
+            # 1. Haetaan API-avain tietokannasta getSettingsValue(self, key)-metodilla
+            dbConnection1 = dbOperations.DbConnection(dbSettings)
+            apiKey = dbConnection1.getSettingsValue('paikkatietoAPI')
 
-            # Käydään paikkatiedot riveittäin läpi ja muodostetaan uusi sanakirja tietojen pohjalta
-            for spatialDataRow in spatialData:
-                startOdo = round(spatialDataRow['driveStartOdo'] / 1000)
-                stopOdo = round(spatialDataRow['driveStopOdo'] / 1000)
-                startPlace = spatialDataRow['routeStartPosition']
-                stopPlace = spatialDataRow['routeStopPosition']
+            # 2. Haetaan auton deviceID auto-taulusta getDeviceId(registerNumber)-metodilla
+            registerNumber = f"{self.ui.keyReturnBarcodeLineEdit.text()}"
+            dbConnection2 = dbOperations.DbConnection(dbSettings)
+            deviceId = dbConnection2.getDeviceId(registerNumber)
 
-                aCity = startPlace['city']
-                aStreet = startPlace['street']
-                aNumber = startPlace['houseno']
+            # 3. Haetaan lainauksen numero rekisterinumeron perusteella
+            dbConnection3 = dbOperations.DbConnection(dbSettings)
+            lendingId = dbConnection3.getNotReturnedId(registerNumber)
 
+            # 4. Asetetaan auton palautusaika
+            dbConnection4 = dbOperations.DbConnection(dbSettings)
+            dbConnection4.setReturnTimestamp(lendingId)
 
-                bCity = stopPlace['city']
-                bStreet = stopPlace['street']
-                bNumber = stopPlace['houseno']
+            # 5. Haetaan auton lainauksen alkamis- ja päättymisajat tietokannasta
+            dbConnection5 = dbOperations.DbConnection(dbSettings)
+            timeStamps = dbConnection5.getTimestamps(lendingId)
+            startTime = timeStamps['startTime']
+            endTime = timeStamps['endTime']
 
-                # Sanakirja tietojen tallentamiseksi tietokantaan
-                tripData = {
-                    'akaupunki': aCity,
-                    'akatu': aStreet,
-                    'akatunumero': aNumber,
-                    'bkaupunki': bCity,
-                    'bkatu': bStreet,
-                    'bkatunumero': bNumber,
-                    'alkukm': startOdo,
-                    'loppukm': stopOdo
-                }
-        except:
-            print('Something went wrong')
+            # 6. Kutsutaan getNoPointsRoutes(self, deviceId, startTime, endTime)-metodia spatialdata-moduulista
+            baseUrl = 'https://app.paikannin.com/public/api'
+            paikanninDotCom = spatialdata.PaikanninDotCom(apiKey, baseUrl)
+            tripData = paikanninDotCom.getNoPointsRoutes(deviceId, startTime, endTime)
+
+            # 7. Tallennetaan paikkatiedot
+
+            # Jos paikkatietoja ei ole saatu, merkitään ne puuttuviksi manuaalista korjausta varten
+            if tripData == []:
+                dataToSave = {'fromField': 'PUUTTUU', 'toField': 'PUUTTUU', 'startOdo': 0, 'stopOdo': 0}
+                statusMessage = 'AJON PAIKKATIETOJA EI SAATU'
+            else:
+                dataToSave = tripData
+
+            dbConnection6 = dbOperations.DbConnection(dbSettings)
+            dbConnection6.addTrip(lendingId,dataToSave)
+
+        # Määritellään virhedialogin ja tilarivin tekstit virhetilanteessa
+        except Exception as e:
+            title = 'Auton palautustietojen tallentaminen ei onnistunut'
+            text = 'Auton palauttamisessa tapahtui virhe: syynä voi olla ongelmat verkkoyhteydessä, tietokatapalvelimassa tai paikannuspalvelussa. Ota yhteys henkilökuntaan.'
+            statusMessage = 'AUTON PALAUTTAMISESSA TAPAHTUI VIRHE'
+            statusSound = 'keyreadFailed.WAV'
+            detailedText = str(e)
+            self.openWarning(title, text, detailedText)
+        
         finally:
-            print('The try except is finished')
-        
 
-        # Jos paikkatietoja ei saada tallennetaan tietue, jonka kentät ilmaisevat tietojen puuttuvan
-        if len(spatialData) == 0:
-            tripData = {
-                'akaupunki': 'Puuttuu',
-                'akatu': 'Puuttuu',
-                'akatunumero': 'Puuttuu',
-                'bkaupunki': 'Puuttuu',
-                'bkatu': 'Puuttuu',
-                'bkatunumero': 'Puuttuu',
-                'alkukm': 0,
-                'loppukm': 0
-            }
-
-            # Näytetään varoitusdialogi
-            detailedWarningMsg = f'Location service responded with status code: {responseStatus}'
-            self.openWarning('Ajon paikkatietoja ei saatu', 'Ajon tietoja ei saatu ladattua paikannuspalvelusta', detailedWarningMsg)
-
-        else:
-                            
-            
-        
-       
-            # Tallennetaan tietot tietokantaan
-            dbConnection7 = dbOperations.DbConnection(dbSettings)
-            dbConnection7.addTrip(lendingId,tripData)
-
-        # Ilmoitetaan tilarivillä auton palautuksen onnistumisesta
-        self.ui.statusbar.showMessage('Auto palautettu')
-        self.setInitialElements()
-        if self.ui.soundCheckBox.isChecked():
-            self.playSoundInThread('returnOk.wav')
+            # Ilmoitetaan tilarivillä auton palautuksen tilatieto
+            self.ui.statusbar.showMessage(statusMessage)
+            self.setInitialElements()
+            if self.ui.soundCheckBox.isChecked():
+                self.playSoundInThread(statusSound)
 
     
     @Slot()

@@ -266,7 +266,6 @@ class DbConnection():
                 currentConnection.close() # Tuhotaan yhteys
 
     # Metodi tietojen muokkaamiseen, yksittäinen sarake
-    # TODO: Muokkaa tätä, siten että saadaan toinen ehto, siitä että palautusaika pitää olla tyhjä!
     def modifyTableData(self, table: str, column: str, newValue, criteriaColumn: str, criteriaValue):
         """Updataes a column according to a filtering criteria
 
@@ -498,7 +497,7 @@ class DbConnection():
             e: Database or OS error
 
         Returns:
-            _tuple: Timstamps lending starts, lending ends
+            dict: Dictionary containine start and end times in ISO-format
         """        
         # Yritetään avata yhteys tietokantaan ja päivittää tietueita
         try:
@@ -512,8 +511,11 @@ class DbConnection():
             sqlClause = f"SELECT lainausaika, palautusaika FROM public.lainaus WHERE lainausnumero = '{lendingId}'"
 
             cursor.execute(sqlClause)
-            timestamps = cursor.fetchone()
-            return timestamps
+            timeStampsRaw = cursor.fetchone()
+            startTime = timeStampsRaw[0].isoformat()[:19] + 'Z'
+            endTime = timeStampsRaw[1].isoformat()[:19] + 'Z'
+            timeStamps = {'startTime': startTime, 'endTime': endTime}
+            return timeStamps
 
         # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
         except (Exception, psycopg2.Error) as e:
@@ -563,19 +565,9 @@ class DbConnection():
             tripData (dict): Dictionary containing place and odometer data
         """        
         
-        # Muodostetaan JSON-datatasta arvot SQL-lausetta varten
-        
-        aKaupunki = tripData['aKaupunki']
-        aKatu = tripData['aKatu']
-        aKatunumero = tripData['aKatunumero']
-        bKaupunki = tripData['bKaupunki']
-        bKatu = tripData['bKatu']
-        bkatunumero = tripData['bkatunumero']
-        alkukm = tripData['alkukm']
-        loppukm = tripData['loppukm']
-
+        # FIXME: Muuta vastaamaan uutta rakennetta
         # Määritellään SQL-lause yksittäisen matkan osan tallentamiseksi
-        sqlClause = f"INSERT INTO public.web_paikkatieto( lainausnumero, a_kaupunki, a_katu, a_katunumero, b_kaupunki, b_katu, b_katunumero, alku_km, loppu_km) VALUES ({lendingId}, '{aKaupunki}', '{aKatu}', '{aKatunumero}', '{bKaupunki}', '{bKatu}', '{bkatunumero}', {alkukm}, {loppukm}"
+        sqlClause = f"INSERT INTO public.ajon_paikat( lainausnumero, mista, mihin, amml, lmml) VALUES ({lendingId}, '{tripData['fromField']}', '{tripData['toField']}', {tripData['startOdo']}, {tripData['stopOdo']}"
 
 
         try:
@@ -669,7 +661,7 @@ class DbConnection():
             cursor = currentConnection.cursor()
          # Suoritetaan SQL-lause ja luetaan tulokset kursorista
             cursor.execute(sqlClause)
-            records= cursor.fetchall()
+            records = cursor.fetchall()
             return records
 
         # Jos tapahtuu virhe, välitetään se luokkaa käyttävälle ohjelmalle
@@ -694,7 +686,9 @@ if __name__ == "__main__":
 
     # data = dbconnection.getNotReturnedId('FPB-343')
     # dbconnection.setReturnTimestamp(data)
-    data = dbconnection.getVehiclesFree('Auto')
-    print('Vapaana:', data)
-    data2 = dbconnection.getVehiclesInUse('Auto')
-    print('Ajossa:', data2)
+    # data = dbconnection.getVehiclesFree('Auto')
+    # print('Vapaana:', data)
+    # data2 = dbconnection.getVehiclesInUse('Auto')
+    # print('Ajossa:', data2)
+    timeStamps = dbconnection.getTimestamps(20)
+    print(timeStamps)

@@ -6,6 +6,12 @@ class PaikanninDotCom:
 
     # Konstruktori
     def __init__(self, apikey, baseurl):
+        """Creates an object for getting spatial data from paikannin.com
+
+        Args:
+            apikey (str): API-key to access paikannin.com
+            baseurl (str): URL for API calls without parameters
+        """
         self.apikey = apikey
         self.baseurl = baseurl
 
@@ -16,11 +22,21 @@ class PaikanninDotCom:
         pass
 
     def getNoPointsRoutes(self, deviceId, startTime, endTime):
+        """ Loads trip addresses from paikannin.com for a vehicle at a given time
 
+        Args:
+            deviceId (int): vehicle's device number
+            startTime (str): timestamp of drive started
+            endTime (str): timestamp of drive ended
+
+        Returns:
+            list: list of dictionary entries containing starting and ending places of trip legs
+        """
         # Define URL for API call
-        baseurl = f'https://app.paikannin.com/public/api/devices/routes/nopoints/'
+        # 'https://app.paikannin.com/public/api/devices/routes/nopoints/'
+        methodUrl = f'{self.baseurl}/devices/routes/nopoints/'
         extension = f'{deviceId}/{startTime}/{endTime}'
-        url = baseurl + extension
+        url = methodUrl + extension
 
         # Define header and set an empty payload
         payload = ""
@@ -55,11 +71,18 @@ class PaikanninDotCom:
                 fromFieldText = f"'{startPlace['street']} {startPlace['houseno']} {startPlace['city']}'"
                 toFieldText = f"'{stopPlace['street']} {stopPlace['houseno']} {stopPlace['city']}'"
                 resultSet.append({'fromField': fromFieldText, 'toField': toFieldText, 'startOdo': startOdo, 'stopOdo': stopOdo})
-                
-        print(resultSet)
+        else:
+            resultSet = []        
+        
         return resultSet
     
-
-
-
     
+if __name__ == "__main__":
+    apiKey = ''
+    baseurl = 'https://app.paikannin.com/public/api'
+    deviceId = 104619
+    startTime = '2026-03-22T08:00:00Z'
+    endTime = '2026-03-27T10:00:00Z'
+    paikanninDotCom = PaikanninDotCom(apiKey,baseurl)
+    data = paikanninDotCom.getNoPointsRoutes(deviceId, startTime, endTime)
+    print(data)
