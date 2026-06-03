@@ -565,7 +565,7 @@ class DbConnection():
             tripData (dict): Dictionary containing place and odometer data
         """        
         
-        # FIXME: Muuta vastaamaan uutta rakennetta
+        
         # Määritellään SQL-lause yksittäisen matkan osan tallentamiseksi
         sqlClause = f"INSERT INTO public.ajon_paikat( lainausnumero, mista, mihin, amml, lmml) VALUES ({lendingId}, '{tripData['fromField']}', '{tripData['toField']}', {tripData['startOdo']}, {tripData['stopOdo']}"
 
