@@ -558,7 +558,7 @@ class DbConnection():
 
 
     def addTrip(self, lendingId, tripData):
-        """Updates spatial information from trip's JSON data to a table
+        """Updates spatial information from trip's JSON data to ajon_paikat table 
 
         Args:
             lendingId (int): Reference to lending transaction
@@ -624,6 +624,7 @@ class DbConnection():
                 currentConnection.close() # Tuhotaan yhteys
 
     # Haetaan osaston vapaat ajoneuvot
+    # TODO: Vapaiden autojen hakuun lisätään oma osasto
     def getVehiclesFree(self, division):
         sqlClause = f"SELECT rekisterinumero, merkki, malli, automaatti, henkilomaara FROM public.vapaana WHERE osasto = '{division}'"
         # Yritetään avata yhteys tietokantaan ja hakea tiedot

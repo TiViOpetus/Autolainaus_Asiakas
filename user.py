@@ -206,6 +206,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
         try:
             # Luodaan tietokantayhteys-olio
+            # TODO: pelkästään oman osaston autot
             dbConnection = dbOperations.DbConnection(dbSettings)
             freeVehicles = dbConnection.getVehiclesFree(self.division)
             
@@ -430,8 +431,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.openWarning(title, text, detailedText)
 
     
-        
-
     # Näytetään palautukseen liittyvät kentät ja kuvat
     @Slot()
     def activateReturnCar(self):
@@ -449,6 +448,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.playSoundInThread('readKey.wav')
 
     # Tallennetaan palautuksen tiedot tietokantaan ja palautetaan UI alkutilaan
+    # TODO: Tarkista tämän toimivuus vielä lisäämällä print()-komennot
     @Slot()
     def saveReturnData(self):
         
@@ -466,16 +466,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # 1. Haetaan API-avain tietokannasta getSettingsValue(self, key)-metodilla
             dbConnection1 = dbOperations.DbConnection(dbSettings)
             apiKey = dbConnection1.getSettingsValue('paikkatietoAPI')
-
+            print('API-key:', apiKey)
             # 2. Haetaan auton deviceID auto-taulusta getDeviceId(registerNumber)-metodilla
             registerNumber = f"{self.ui.keyReturnBarcodeLineEdit.text()}"
             dbConnection2 = dbOperations.DbConnection(dbSettings)
             deviceId = dbConnection2.getDeviceId(registerNumber)
-
+            print('Device ID:', deviceId)
             # 3. Haetaan lainauksen numero rekisterinumeron perusteella
             dbConnection3 = dbOperations.DbConnection(dbSettings)
             lendingId = dbConnection3.getNotReturnedId(registerNumber)
-
+            print('Lainausnumero:', lendingId)
             # 4. Asetetaan auton palautusaika
             dbConnection4 = dbOperations.DbConnection(dbSettings)
             dbConnection4.setReturnTimestamp(lendingId)
@@ -485,6 +485,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             timeStamps = dbConnection5.getTimestamps(lendingId)
             startTime = timeStamps['startTime']
             endTime = timeStamps['endTime']
+            print('Aloitus ja päättymisajat:', startTime, endTime)
 
             # 6. Kutsutaan getNoPointsRoutes(self, deviceId, startTime, endTime)-metodia spatialdata-moduulista
             baseUrl = 'https://app.paikannin.com/public/api'
@@ -502,6 +503,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             dbConnection6 = dbOperations.DbConnection(dbSettings)
             dbConnection6.addTrip(lendingId,dataToSave)
+            print('Paikkatiedot:', tripData)
 
         # Määritellään virhedialogin ja tilarivin tekstit virhetilanteessa
         except Exception as e:
