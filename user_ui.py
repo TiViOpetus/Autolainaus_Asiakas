@@ -26,9 +26,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1318, 939)
+        MainWindow.resize(1920, 1080)
         MainWindow.setMinimumSize(QSize(1280, 720))
-        MainWindow.setMaximumSize(QSize(1920, 1080))
         icon = QIcon(QIcon.fromTheme(u"emblem-shared"))
         MainWindow.setWindowIcon(icon)
         MainWindow.setStyleSheet(u"background-color: rgb(223, 32, 112);")
@@ -252,21 +251,21 @@ class Ui_MainWindow(object):
         self.lendPage.setObjectName(u"lendPage")
         self.gridLayout_7 = QGridLayout(self.lendPage)
         self.gridLayout_7.setObjectName(u"gridLayout_7")
-        self.frame = QFrame(self.lendPage)
-        self.frame.setObjectName(u"frame")
-        sizePolicy.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
-        self.frame.setSizePolicy(sizePolicy)
-        self.frame.setMinimumSize(QSize(1200, 80))
-        self.frame.setMaximumSize(QSize(1920, 80))
-        self.frame.setFrameShape(QFrame.Shape.Box)
-        self.frame.setFrameShadow(QFrame.Shadow.Plain)
-        self.horizontalLayout_4 = QHBoxLayout(self.frame)
+        self.reasonFrame = QFrame(self.lendPage)
+        self.reasonFrame.setObjectName(u"reasonFrame")
+        sizePolicy.setHeightForWidth(self.reasonFrame.sizePolicy().hasHeightForWidth())
+        self.reasonFrame.setSizePolicy(sizePolicy)
+        self.reasonFrame.setMinimumSize(QSize(1200, 80))
+        self.reasonFrame.setMaximumSize(QSize(1920, 80))
+        self.reasonFrame.setFrameShape(QFrame.Shape.Box)
+        self.reasonFrame.setFrameShadow(QFrame.Shadow.Plain)
+        self.horizontalLayout_4 = QHBoxLayout(self.reasonFrame)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalSpacer_7 = QSpacerItem(10, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_7)
 
-        self.reasonComboBox = QComboBox(self.frame)
+        self.reasonComboBox = QComboBox(self.reasonFrame)
         self.reasonComboBox.setObjectName(u"reasonComboBox")
         sizePolicy2.setHeightForWidth(self.reasonComboBox.sizePolicy().hasHeightForWidth())
         self.reasonComboBox.setSizePolicy(sizePolicy2)
@@ -286,19 +285,19 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addItem(self.horizontalSpacer_8)
 
 
-        self.gridLayout_7.addWidget(self.frame, 0, 0, 1, 1)
+        self.gridLayout_7.addWidget(self.reasonFrame, 0, 0, 1, 1)
 
-        self.frame_2 = QFrame(self.lendPage)
-        self.frame_2.setObjectName(u"frame_2")
-        sizePolicy.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
-        self.frame_2.setSizePolicy(sizePolicy)
-        self.frame_2.setMinimumSize(QSize(1200, 380))
-        self.frame_2.setMaximumSize(QSize(1900, 1000))
-        self.frame_2.setFrameShape(QFrame.Shape.Box)
-        self.frame_2.setFrameShadow(QFrame.Shadow.Plain)
-        self.gridLayout_9 = QGridLayout(self.frame_2)
+        self.lendPageMainFrame = QFrame(self.lendPage)
+        self.lendPageMainFrame.setObjectName(u"lendPageMainFrame")
+        sizePolicy.setHeightForWidth(self.lendPageMainFrame.sizePolicy().hasHeightForWidth())
+        self.lendPageMainFrame.setSizePolicy(sizePolicy)
+        self.lendPageMainFrame.setMinimumSize(QSize(1200, 380))
+        self.lendPageMainFrame.setMaximumSize(QSize(1900, 1000))
+        self.lendPageMainFrame.setFrameShape(QFrame.Shape.Box)
+        self.lendPageMainFrame.setFrameShadow(QFrame.Shadow.Plain)
+        self.gridLayout_9 = QGridLayout(self.lendPageMainFrame)
         self.gridLayout_9.setObjectName(u"gridLayout_9")
-        self.timeFrame = QFrame(self.frame_2)
+        self.timeFrame = QFrame(self.lendPageMainFrame)
         self.timeFrame.setObjectName(u"timeFrame")
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         sizePolicy4.setHorizontalStretch(0)
@@ -360,7 +359,7 @@ class Ui_MainWindow(object):
 
         self.gridLayout_9.addWidget(self.timeFrame, 0, 2, 1, 1)
 
-        self.carRegisterFrame = QFrame(self.frame_2)
+        self.carRegisterFrame = QFrame(self.lendPageMainFrame)
         self.carRegisterFrame.setObjectName(u"carRegisterFrame")
         sizePolicy.setHeightForWidth(self.carRegisterFrame.sizePolicy().hasHeightForWidth())
         self.carRegisterFrame.setSizePolicy(sizePolicy)
@@ -415,7 +414,7 @@ class Ui_MainWindow(object):
 
         self.gridLayout_9.addWidget(self.carRegisterFrame, 0, 1, 1, 1)
 
-        self.lenderInfoFrame = QFrame(self.frame_2)
+        self.lenderInfoFrame = QFrame(self.lendPageMainFrame)
         self.lenderInfoFrame.setObjectName(u"lenderInfoFrame")
         sizePolicy.setHeightForWidth(self.lenderInfoFrame.sizePolicy().hasHeightForWidth())
         self.lenderInfoFrame.setSizePolicy(sizePolicy)
@@ -475,7 +474,7 @@ class Ui_MainWindow(object):
 
         self.gridLayout_9.addWidget(self.lenderInfoFrame, 0, 0, 1, 1)
 
-        self.carInfoFrame = QFrame(self.frame_2)
+        self.carInfoFrame = QFrame(self.lendPageMainFrame)
         self.carInfoFrame.setObjectName(u"carInfoFrame")
         sizePolicy.setHeightForWidth(self.carInfoFrame.sizePolicy().hasHeightForWidth())
         self.carInfoFrame.setSizePolicy(sizePolicy)
@@ -515,7 +514,7 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.carInfoFrame, 0, 3, 1, 1)
 
 
-        self.gridLayout_7.addWidget(self.frame_2, 2, 0, 1, 1)
+        self.gridLayout_7.addWidget(self.lendPageMainFrame, 2, 0, 1, 1)
 
         self.stackedWidget.addWidget(self.lendPage)
         self.returnPage = QWidget()
@@ -642,7 +641,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1318, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1920, 33))
         self.menubar.setStyleSheet(u"background-color: rgb(0, 33, 72);\n"
 "color: rgb(255, 255, 255);")
         MainWindow.setMenuBar(self.menubar)

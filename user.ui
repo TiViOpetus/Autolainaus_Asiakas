@@ -6,20 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1318</width>
-    <height>939</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1280</width>
     <height>720</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>1920</width>
-    <height>1080</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -522,7 +516,7 @@ background-color: rgb(140, 51, 85);</string>
       <widget class="QWidget" name="lendPage">
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
-         <widget class="QFrame" name="frame">
+         <widget class="QFrame" name="reasonFrame">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -619,7 +613,7 @@ color: rgb(32, 75, 70);</string>
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QFrame" name="frame_2">
+         <widget class="QFrame" name="lendPageMainFrame">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1562,7 +1556,7 @@ color: rgb(255, 255, 255);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1318</width>
+     <width>1920</width>
      <height>33</height>
     </rect>
    </property>
