@@ -160,7 +160,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
-        dbSettings['password'] = plainTextPassword # Vaidetaan selväkieliseksi
+        dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
 
         try:
             # Luodaan tietokantayhteys-olio
@@ -234,6 +234,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Näyttää ajon tarkoitus -yhdistelmäruudun
     @Slot()
     def activateReason(self):
+
+        # Avataan sivu index #1 (lendPage)
+        self.ui.stackedWidget.setCurrentIndex(1)
 
         # Asetetaan elementtien näkyvyydet
         self.ui.statusFrame.hide()
@@ -408,6 +411,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         plainTextPassword = self.plainTextPassword
         dbSettings['password'] = plainTextPassword # Vaihdetaan selväkieliseksi
 
+        # Avataan sivu index #0 (mainPage)
+        self.ui.stackedWidget.setCurrentIndex(0)
+
         try:
             # Luodaan tietokantayhteys-olio
             dbConnection = dbOperations.DbConnection(dbSettings)
@@ -430,10 +436,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             detailedText = str(e)
             self.openWarning(title, text, detailedText)
 
+            # Avataan sivu index #0 (mainPage)
+            self.ui.stackedWidget.setCurrentIndex(0)
+
     
     # Näytetään palautukseen liittyvät kentät ja kuvat
     @Slot()
     def activateReturnCar(self):
+
+        # Avataan sivu index #2 (returnPage)
+        self.ui.stackedWidget.setCurrentIndex(2)
+
         self.ui.statusFrame.hide()
         self.ui.takeCarPushButton.hide()
         self.ui.returnCarPushButton.hide()
@@ -467,15 +480,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             dbConnection1 = dbOperations.DbConnection(dbSettings)
             apiKey = dbConnection1.getSettingsValue('paikkatietoAPI')
             print('API-key:', apiKey)
+
             # 2. Haetaan auton deviceID auto-taulusta getDeviceId(registerNumber)-metodilla
             registerNumber = f"{self.ui.keyReturnBarcodeLineEdit.text()}"
             dbConnection2 = dbOperations.DbConnection(dbSettings)
             deviceId = dbConnection2.getDeviceId(registerNumber)
             print('Device ID:', deviceId)
+
             # 3. Haetaan lainauksen numero rekisterinumeron perusteella
             dbConnection3 = dbOperations.DbConnection(dbSettings)
             lendingId = dbConnection3.getNotReturnedId(registerNumber)
             print('Lainausnumero:', lendingId)
+
             # 4. Asetetaan auton palautusaika
             dbConnection4 = dbOperations.DbConnection(dbSettings)
             dbConnection4.setReturnTimestamp(lendingId)
@@ -519,6 +535,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Ilmoitetaan tilarivillä auton palautuksen tilatieto
             self.ui.statusbar.showMessage(statusMessage)
             self.setInitialElements()
+
+            # Avataan sivu index #0 (mainPage)
+            self.ui.stackedWidget.setCurrentIndex(0)
+
             if self.ui.soundCheckBox.isChecked():
                 self.playSoundInThread(statusSound)
 
@@ -527,6 +547,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def goBack(self):
         self.setInitialElements()
         self.ui.statusbar.showMessage('Toiminto peruutettiin', 5000)
+
+        # Avataan sivu index #0 (mainPage)
+        self.ui.stackedWidget.setCurrentIndex(0)
     
     # Metodi monirivisen luettelon muodostamiseen taulun tai näkymän datasta
     def createCatalog(self, tupleList: list, suffix='') -> str:
@@ -594,7 +617,3 @@ window.show()
 
 # Käynnistetään sovellus ja tapahtumienkäsittelijä (event loop)
 app.exec()
-
-
-    
-
