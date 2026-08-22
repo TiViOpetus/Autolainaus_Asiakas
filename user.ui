@@ -169,7 +169,7 @@
        <enum>QFrame::Shape::Box</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="mainPage">
        <layout class="QGridLayout" name="gridLayout_2">
@@ -219,7 +219,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
               <item row="1" column="0">
-               <widget class="QPlainTextEdit" name="availablePlainTextEdit_2">
+               <widget class="QPlainTextEdit" name="availablePlainTextEdit">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -261,7 +261,7 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QLabel" name="availableLabel_2">
+               <widget class="QLabel" name="availableLabel">
                 <property name="font">
                  <font>
                   <pointsize>16</pointsize>
@@ -280,7 +280,7 @@
                </widget>
               </item>
               <item row="1" column="3">
-               <widget class="QPlainTextEdit" name="inUsePlainTextEdit_2">
+               <widget class="QPlainTextEdit" name="inUsePlainTextEdit">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -315,7 +315,7 @@ border-color: rgb(255, 255, 255);</string>
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QLabel" name="inUseLabel_2">
+               <widget class="QLabel" name="inUseLabel">
                 <property name="font">
                  <font>
                   <pointsize>16</pointsize>
