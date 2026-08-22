@@ -49,7 +49,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Tallennetaan osastotieto autojen suodattamista varten
             self.division = self.currentSettings['division']
             
-
         # Jos asetusten luku ei onnistu, näytetään virhedialogi
         except Exception as error:
             title = 'Tietokanta-asetusten luku ei onnistunut'
@@ -61,7 +60,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Ohjelman käynnistyksessä piilotetaan tarpeettomat elementit
         self.setInitialElements()
-
 
         # OHJELMOIDUT SIGNAALIT
         # ---------------------
@@ -112,30 +110,43 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def playSoundInThread(self, soundFileName):
         self.threadPool.start(lambda: self.playSoundFile(soundFileName))
 
-    # Palauta käyttöliittymä alkutilanteeseen ja päivittää vapaiden ja 
-    # ajossa olevien autojen katalogit
+    # TODO: Re-think the moveWidget function or, make a simple method within the setLendingData funktion.
+    @Slot()
+    def moveWidget(self, widget, newIndex):
+        layout = widget.parentWidget().layout()
+        layout.removeWidget(widget)
+        layout.insertWidget(newIndex, widget)
+        pass
+
+    # Palauta käyttöliittymä alkutilanteeseen ja päivittää vapaiden ja ajossa olevien autojen katalogit
     @Slot()
     def setInitialElements(self):
 
         # Piilotetaan alkutilanteessa lainauksen ja palautuksen elementit
-        self.ui.reasonComboBox.hide()
-        self.ui.registerPlateBGLabel.hide()
-        self.ui.registerPlateBGReturnLabel.hide()
-        self.ui.okPushButton.hide()
-        self.ui.calendarLabel.hide()
-        self.ui.clockLabel.hide()
-        self.ui.dateLabel.hide()
-        self.ui.goBackPushButton.hide()
-        self.ui.keyBarcodeLineEdit.hide()
-        self.ui.keyReturnBarcodeLineEdit.hide()
-        self.ui.keyPictureLabel.hide()
-        self.ui.keyPictureReturnLabel.hide()
-        self.ui.lenderPictureLabel.hide()
-        self.ui.ssnLineEdit.hide()
-        self.ui.statusLabel.hide()
-        self.ui.timeLabel.hide()
-        self.ui.lenderNameLabel.hide()
-        self.ui.carInfoLabel.hide()
+        # self.ui.reasonComboBox.hide()
+        # self.ui.registerPlateBGLabel.hide()
+        # self.ui.registerPlateBGReturnLabel.hide()
+        # self.ui.okPushButton.hide()
+        # self.ui.calendarLabel.hide()
+        # self.ui.clockLabel.hide()
+        # self.ui.dateLabel.hide()
+        # self.ui.goBackPushButton.hide()
+        # self.ui.keyBarcodeLineEdit.hide()
+        # self.ui.keyReturnBarcodeLineEdit.hide()
+        # self.ui.keyPictureLabel.hide()
+        # self.ui.keyPictureReturnLabel.hide()
+        # self.ui.lenderPictureLabel.hide()
+        # self.ui.ssnLineEdit.hide()
+        # self.ui.statusLabel.hide()
+        # self.ui.timeLabel.hide()
+        # self.ui.lenderNameLabel.hide()
+        # self.ui.carInfoLabel.hide()
+
+        self.ui.reasonFrame.hide()
+        self.ui.lenderInfoFrame.hide()
+        self.ui.carRegisterFrame.hide()
+        self.ui.timeFrame.hide()
+        self.ui.carInfoFrame.hide()
 
         # Näytetään alkutilanteen elementit
         self.ui.returnCarPushButton.show()
@@ -150,12 +161,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.inUsePlainTextEdit.clear()
 
         # Aktivoidaan tarvittavat painikkeet
-        self.ui.okPushButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.ui.okPushButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor)) # Tämä koodi ei ole tarpeellinen, omalla laitteellani toimi normaalisti.
         self.ui.okPushButton.setEnabled(True)
 
         # Palautetaan auton oletuskuva
         self.ui.vehiclePictureLabel.setPixmap(self.defaultVehiclePicture)
-        
         
         # Luetaan tietokanta-asetukset paikallisiin muuttujiin
         dbSettings = self.currentSettings
@@ -173,8 +183,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             modifiedInUseVehiclesList = []
 
             # Alustetaan tyhjä lista, jotta monikkoon voi tehdä muutoksia
-            
-
             # Käydään lista läpi ja lisätään monikon alkiot listaan
             for vehicleTuple in inUseVehicles:
                 modifiedInUseVehicles = []
@@ -242,7 +250,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.statusFrame.hide()
         self.ui.statusLabel.setText('Auton lainaus')
         self.ui.goBackPushButton.show()
-        self.ui.reasonComboBox.show()
+        self.ui.reasonFrame.show()
         self.ui.returnCarPushButton.hide()
         self.ui.takeCarPushButton.hide()
         self.ui.statusLabel.show()
@@ -254,11 +262,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         plainTextPassword = self.plainTextPassword
         dbSettings['password'] = plainTextPassword # Vaidetaan selväkieliseksi
     
-
         # Tehdään lista ajon tarkoituksista
         dbConnection = dbOperations.DbConnection(dbSettings) # Luodaan tietokantayhteys-olio
 
-        
         reasonList = dbConnection.readColumsFromTable('tarkoitus', ['tarkoitus'])
         reasonStringList = []
         for item in reasonList:
@@ -271,22 +277,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Näyttää lainaajan kuvakkeen ja henkilötunnuksen kentän
     @Slot()
     def activateLender(self):
-        
+
+        self.ui.lenderInfoFrame.show()
         self.ui.lenderPictureLabel.show()
         self.ui.ssnLineEdit.show()
         self.ui.ssnLineEdit.setFocus()
         
-        
         self.ui.statusbar.showMessage('Syötä ajokortti koneeseen')
         if self.ui.soundCheckBox.isChecked():
             self.playSoundInThread('drivingLicence.wav')
-            
-        
 
     # Näyttää avaimen kuvakkeen, rekisterikentän ja lainaajan tiedot
     @Slot()
     def activateKey(self):
         self.ui.ssnLineEdit.hide()
+        self.ui.carRegisterFrame.show()
         self.ui.keyPictureLabel.show()
         self.ui.registerPlateBGLabel.show()
         self.ui.keyBarcodeLineEdit.show()
@@ -318,9 +323,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             detailedText = str(e)
             self.openWarning(title, text, detailedText)
 
+    # TODO: Make a funkion or a method that, moves the carInfoFrame to the slot 1 within layout index
     # Näyttää lainauksen loput tiedot
     @Slot()
     def setLendingData(self):
+        self.ui.carRegisterFrame.hide()
+        self.ui.carInfoFrame.show()
+        self.ui.timeFrame.show()
         self.ui.carInfoLabel.show()
         self.ui.dateLabel.show()
         self.ui.calendarLabel.show()
@@ -439,7 +448,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Avataan sivu index #0 (mainPage)
             self.ui.stackedWidget.setCurrentIndex(0)
 
-    
     # Näytetään palautukseen liittyvät kentät ja kuvat
     @Slot()
     def activateReturnCar(self):
@@ -542,15 +550,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if self.ui.soundCheckBox.isChecked():
                 self.playSoundInThread(statusSound)
 
-    
     @Slot()
     def goBack(self):
+
+        # Palauta käyttöliittymä alkutilanteeseen ja päivittää vapaiden ja ajossa olevien autojen katalogit
         self.setInitialElements()
-        self.ui.statusbar.showMessage('Toiminto peruutettiin', 5000)
 
         # Avataan sivu index #0 (mainPage)
         self.ui.stackedWidget.setCurrentIndex(0)
-    
+
+        # Näytetään viesti
+        self.ui.statusbar.showMessage('Toiminto peruutettiin', 5000)
+
     # Metodi monirivisen luettelon muodostamiseen taulun tai näkymän datasta
     def createCatalog(self, tupleList: list, suffix='') -> str:
         """Creates a catalog like text for plainText edits from list of tuples.
@@ -602,7 +613,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         msgBox.setDetailedText(detailedText)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.exec()
-
 
 # LUODAAN VARSINAINEN SOVELLUS
 # ============================
