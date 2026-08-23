@@ -110,52 +110,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def playSoundInThread(self, soundFileName):
         self.threadPool.start(lambda: self.playSoundFile(soundFileName))
 
-    # TODO: Re-think the moveWidget function or, make a simple method within the setLendingData funktion.
-    @Slot()
-    def moveWidget(self, widget, newIndex):
-        layout = widget.parentWidget().layout()
-        layout.removeWidget(widget)
-        layout.insertWidget(newIndex, widget)
-        pass
-
     # Palauta käyttöliittymä alkutilanteeseen ja päivittää vapaiden ja ajossa olevien autojen katalogit
     @Slot()
     def setInitialElements(self):
 
         # Piilotetaan alkutilanteessa lainauksen ja palautuksen elementit
-        # self.ui.reasonComboBox.hide()
-        # self.ui.registerPlateBGLabel.hide()
-        # self.ui.registerPlateBGReturnLabel.hide()
-        # self.ui.okPushButton.hide()
-        # self.ui.calendarLabel.hide()
-        # self.ui.clockLabel.hide()
-        # self.ui.dateLabel.hide()
-        # self.ui.goBackPushButton.hide()
-        # self.ui.keyBarcodeLineEdit.hide()
-        # self.ui.keyReturnBarcodeLineEdit.hide()
-        # self.ui.keyPictureLabel.hide()
-        # self.ui.keyPictureReturnLabel.hide()
-        # self.ui.lenderPictureLabel.hide()
-        # self.ui.ssnLineEdit.hide()
-        # self.ui.statusLabel.hide()
-        # self.ui.timeLabel.hide()
-        # self.ui.lenderNameLabel.hide()
-        # self.ui.carInfoLabel.hide()
-
+        self.ui.bottomFrame.hide()
+        self.ui.okPushButton.hide()
         self.ui.reasonFrame.hide()
         self.ui.lenderInfoFrame.hide()
         self.ui.carRegisterFrame.hide()
         self.ui.timeFrame.hide()
         self.ui.carInfoFrame.hide()
 
-        # Näytetään alkutilanteen elementit
-        self.ui.returnCarPushButton.show()
-        self.ui.takeCarPushButton.show()
-        self.ui.statusFrame.show()
-
         # Tyhjennetään syöttökentät
         self.ui.keyBarcodeLineEdit.clear()
         self.ui.keyReturnBarcodeLineEdit.clear()
+        self.ui.lenderNameLabel.clear()
         self.ui.ssnLineEdit.clear()
         self.ui.availablePlainTextEdit.clear()
         self.ui.inUsePlainTextEdit.clear()
@@ -247,12 +218,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.stackedWidget.setCurrentIndex(1)
 
         # Asetetaan elementtien näkyvyydet
-        self.ui.statusFrame.hide()
+        self.ui.bottomFrame.show()
         self.ui.statusLabel.setText('Auton lainaus')
         self.ui.goBackPushButton.show()
         self.ui.reasonFrame.show()
-        self.ui.returnCarPushButton.hide()
-        self.ui.takeCarPushButton.hide()
         self.ui.statusLabel.show()
         self.ui.statusbar.showMessage('Valitse ajon tarkoitus')
 
@@ -278,8 +247,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     @Slot()
     def activateLender(self):
 
+        self.ui.lenderNameLabel.hide()
         self.ui.lenderInfoFrame.show()
-        self.ui.lenderPictureLabel.show()
         self.ui.ssnLineEdit.show()
         self.ui.ssnLineEdit.setFocus()
         
@@ -290,13 +259,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Näyttää avaimen kuvakkeen, rekisterikentän ja lainaajan tiedot
     @Slot()
     def activateKey(self):
+
+        # Piilotetaan ja näytetään lainaajaan liittyvät kentät
         self.ui.ssnLineEdit.hide()
+        self.ui.lenderNameLabel.show()
+
+        # Näytetään lainauksee tarvittavat ketät ja asetetaan syöttökenttä aktiiviseksi
         self.ui.carRegisterFrame.show()
         self.ui.keyPictureLabel.show()
         self.ui.registerPlateBGLabel.show()
         self.ui.keyBarcodeLineEdit.show()
         self.ui.keyBarcodeLineEdit.setFocus()
-        self.ui.lenderNameLabel.show()
+        
         self.ui.statusbar.showMessage('Syötä avaimenperä koneeseen')
         if self.ui.soundCheckBox.isChecked():
             self.playSoundInThread('readKey.wav')
@@ -323,25 +297,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             detailedText = str(e)
             self.openWarning(title, text, detailedText)
 
-    # TODO: Make a funkion or a method that, moves the carInfoFrame to the slot 1 within layout index
     # Näyttää lainauksen loput tiedot
     @Slot()
     def setLendingData(self):
+
+        # Piiloteaa tarpeettomat kehykset
         self.ui.carRegisterFrame.hide()
-        self.ui.carInfoFrame.show()
+
+        # Näytetään lainaukseen liittyvät kehykset ja tiedot
         self.ui.timeFrame.show()
-        self.ui.carInfoLabel.show()
-        self.ui.dateLabel.show()
-        self.ui.calendarLabel.show()
-        self.ui.timeLabel.show()
-        self.ui.clockLabel.show()
+        self.ui.carInfoFrame.show()
         self.ui.okPushButton.show()
         self.ui.statusbar.showMessage('Jos tiedot ovat oikein paina OK')
+
         if self.ui.soundCheckBox.isChecked():
             self.playSoundInThread('saveData.wav')
 
         # Päivitetään auton tiedot 
-        
         # Tietokanta-asetukset
         dbSettings = self.currentSettings
         plainTextPassword = self.plainTextPassword
@@ -436,6 +408,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.setInitialElements()
             self.ui.statusbar.showMessage('Auton lainaustiedot tallennettiin', 5000)
+
             if self.ui.soundCheckBox.isChecked():
                 self.playSoundInThread('lendingOk.wav')   
         
@@ -445,8 +418,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             detailedText = str(e)
             self.openWarning(title, text, detailedText)
 
-            # Avataan sivu index #0 (mainPage)
-            self.ui.stackedWidget.setCurrentIndex(0)
+            self.setInitialElements()
+
+        self.setInitialElements()
+        # Avataan sivu index #0 (mainPage)
+        self.ui.stackedWidget.setCurrentIndex(0)
 
     # Näytetään palautukseen liittyvät kentät ja kuvat
     @Slot()
@@ -455,16 +431,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Avataan sivu index #2 (returnPage)
         self.ui.stackedWidget.setCurrentIndex(2)
 
-        self.ui.statusFrame.hide()
-        self.ui.takeCarPushButton.hide()
-        self.ui.returnCarPushButton.hide()
+        # Näytetään palautkseen liityvä kehys ja sen sisältö
+        self.ui.bottomFrame.show()
         self.ui.statusLabel.setText('Auton palautus')
         self.ui.keyPictureReturnLabel.show()
         self.ui.registerPlateBGReturnLabel.show()
-        self.ui.keyReturnBarcodeLineEdit.show()
         self.ui.goBackPushButton.show()
+        self.ui.keyReturnBarcodeLineEdit.show()
         self.ui.keyReturnBarcodeLineEdit.setFocus()
         self.ui.statusbar.showMessage('Lue avaimen viivakoodi')
+
         if self.ui.soundCheckBox.isChecked():
             self.playSoundInThread('readKey.wav')
 
