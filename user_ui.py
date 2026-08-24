@@ -60,7 +60,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.logoLabel_3)
 
-        self.horizontalSpacer_9 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_9 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_9)
 
@@ -81,7 +81,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.statusLabel)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_2 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_2)
 
@@ -265,6 +265,7 @@ class Ui_MainWindow(object):
         self.reasonFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.horizontalLayout_4 = QHBoxLayout(self.reasonFrame)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.horizontalLayout_4.setContentsMargins(9, 9, 9, 9)
         self.horizontalSpacer_7 = QSpacerItem(10, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_7)
@@ -301,44 +302,14 @@ class Ui_MainWindow(object):
         self.lendPageMainFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.gridLayout_9 = QGridLayout(self.lendPageMainFrame)
         self.gridLayout_9.setObjectName(u"gridLayout_9")
-        self.carInfoFrame = QFrame(self.lendPageMainFrame)
-        self.carInfoFrame.setObjectName(u"carInfoFrame")
-        sizePolicy.setHeightForWidth(self.carInfoFrame.sizePolicy().hasHeightForWidth())
-        self.carInfoFrame.setSizePolicy(sizePolicy)
-        self.carInfoFrame.setMinimumSize(QSize(260, 360))
-        self.carInfoFrame.setMaximumSize(QSize(360, 460))
-        self.carInfoFrame.setFrameShape(QFrame.Shape.NoFrame)
-        self.carInfoFrame.setFrameShadow(QFrame.Shadow.Plain)
-        self.gridLayout_11 = QGridLayout(self.carInfoFrame)
-        self.gridLayout_11.setObjectName(u"gridLayout_11")
-        self.gridLayout_11.setContentsMargins(0, 0, 0, 0)
-        self.carInfoLabel = QLabel(self.carInfoFrame)
-        self.carInfoLabel.setObjectName(u"carInfoLabel")
-        sizePolicy.setHeightForWidth(self.carInfoLabel.sizePolicy().hasHeightForWidth())
-        self.carInfoLabel.setSizePolicy(sizePolicy)
-        self.carInfoLabel.setMinimumSize(QSize(180, 50))
-        self.carInfoLabel.setMaximumSize(QSize(230, 50))
-        font6 = QFont()
-        font6.setPointSize(14)
-        self.carInfoLabel.setFont(font6)
-        self.carInfoLabel.setStyleSheet(u"color: rgb(255, 255, 255);")
-        self.carInfoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.gridLayout_9.setContentsMargins(9, 9, 9, 9)
+        self.horizontalSpacer_10 = QSpacerItem(10, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.gridLayout_11.addWidget(self.carInfoLabel, 1, 0, 1, 1)
+        self.gridLayout_9.addItem(self.horizontalSpacer_10, 0, 0, 1, 1)
 
-        self.vehiclePictureLabel = QLabel(self.carInfoFrame)
-        self.vehiclePictureLabel.setObjectName(u"vehiclePictureLabel")
-        sizePolicy.setHeightForWidth(self.vehiclePictureLabel.sizePolicy().hasHeightForWidth())
-        self.vehiclePictureLabel.setSizePolicy(sizePolicy)
-        self.vehiclePictureLabel.setMinimumSize(QSize(180, 180))
-        self.vehiclePictureLabel.setMaximumSize(QSize(210, 210))
-        self.vehiclePictureLabel.setPixmap(QPixmap(u"uiPictures/OXZ915.png"))
-        self.vehiclePictureLabel.setScaledContents(True)
+        self.horizontalSpacer_13 = QSpacerItem(10, 0, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
 
-        self.gridLayout_11.addWidget(self.vehiclePictureLabel, 0, 0, 1, 1)
-
-
-        self.gridLayout_9.addWidget(self.carInfoFrame, 0, 3, 1, 1)
+        self.gridLayout_9.addItem(self.horizontalSpacer_13, 0, 4, 1, 1)
 
         self.carRegisterFrame = QFrame(self.lendPageMainFrame)
         self.carRegisterFrame.setObjectName(u"carRegisterFrame")
@@ -350,7 +321,7 @@ class Ui_MainWindow(object):
         self.carRegisterFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.gridLayout_5 = QGridLayout(self.carRegisterFrame)
         self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.gridLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_5.setContentsMargins(9, 9, 9, 9)
         self.registerPlateBGLabel = QLabel(self.carRegisterFrame)
         self.registerPlateBGLabel.setObjectName(u"registerPlateBGLabel")
         sizePolicy.setHeightForWidth(self.registerPlateBGLabel.sizePolicy().hasHeightForWidth())
@@ -369,11 +340,11 @@ class Ui_MainWindow(object):
         self.keyBarcodeLineEdit.setSizePolicy(sizePolicy)
         self.keyBarcodeLineEdit.setMinimumSize(QSize(180, 50))
         self.keyBarcodeLineEdit.setMaximumSize(QSize(230, 50))
-        font7 = QFont()
-        font7.setFamilies([u"Trebuchet MS"])
-        font7.setPointSize(24)
-        font7.setBold(True)
-        self.keyBarcodeLineEdit.setFont(font7)
+        font6 = QFont()
+        font6.setFamilies([u"Trebuchet MS"])
+        font6.setPointSize(24)
+        font6.setBold(True)
+        self.keyBarcodeLineEdit.setFont(font6)
         self.keyBarcodeLineEdit.setStyleSheet(u"background-color: rgb(208, 208, 208);")
         self.keyBarcodeLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.keyBarcodeLineEdit.setClearButtonEnabled(True)
@@ -393,7 +364,7 @@ class Ui_MainWindow(object):
         self.gridLayout_5.addWidget(self.keyPictureLabel, 0, 0, 1, 1)
 
 
-        self.gridLayout_9.addWidget(self.carRegisterFrame, 0, 1, 1, 1)
+        self.gridLayout_9.addWidget(self.carRegisterFrame, 0, 3, 1, 1)
 
         self.timeFrame = QFrame(self.lendPageMainFrame)
         self.timeFrame.setObjectName(u"timeFrame")
@@ -408,7 +379,7 @@ class Ui_MainWindow(object):
         self.timeFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.gridLayout_8 = QGridLayout(self.timeFrame)
         self.gridLayout_8.setObjectName(u"gridLayout_8")
-        self.gridLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_8.setContentsMargins(9, 9, 9, 9)
         self.dateLabel = QLabel(self.timeFrame)
         self.dateLabel.setObjectName(u"dateLabel")
         self.dateLabel.setEnabled(True)
@@ -416,9 +387,9 @@ class Ui_MainWindow(object):
         self.dateLabel.setSizePolicy(sizePolicy)
         self.dateLabel.setMinimumSize(QSize(180, 50))
         self.dateLabel.setMaximumSize(QSize(350, 50))
-        font8 = QFont()
-        font8.setPointSize(28)
-        self.dateLabel.setFont(font8)
+        font7 = QFont()
+        font7.setPointSize(28)
+        self.dateLabel.setFont(font7)
         self.dateLabel.setStyleSheet(u"color: rgb(255, 255, 255);")
 
         self.gridLayout_8.addWidget(self.dateLabel, 0, 1, 1, 1)
@@ -441,7 +412,7 @@ class Ui_MainWindow(object):
         self.timeLabel.setSizePolicy(sizePolicy)
         self.timeLabel.setMinimumSize(QSize(180, 50))
         self.timeLabel.setMaximumSize(QSize(350, 50))
-        self.timeLabel.setFont(font8)
+        self.timeLabel.setFont(font7)
         self.timeLabel.setStyleSheet(u"color: rgb(255, 255, 255);")
 
         self.gridLayout_8.addWidget(self.timeLabel, 2, 1, 1, 1)
@@ -455,7 +426,50 @@ class Ui_MainWindow(object):
         self.gridLayout_8.addWidget(self.clockLabel, 2, 0, 1, 1)
 
 
-        self.gridLayout_9.addWidget(self.timeFrame, 0, 2, 1, 1)
+        self.gridLayout_9.addWidget(self.timeFrame, 0, 5, 1, 1)
+
+        self.carInfoFrame = QFrame(self.lendPageMainFrame)
+        self.carInfoFrame.setObjectName(u"carInfoFrame")
+        sizePolicy.setHeightForWidth(self.carInfoFrame.sizePolicy().hasHeightForWidth())
+        self.carInfoFrame.setSizePolicy(sizePolicy)
+        self.carInfoFrame.setMinimumSize(QSize(260, 360))
+        self.carInfoFrame.setMaximumSize(QSize(360, 460))
+        self.carInfoFrame.setFrameShape(QFrame.Shape.Box)
+        self.carInfoFrame.setFrameShadow(QFrame.Shadow.Plain)
+        self.gridLayout_11 = QGridLayout(self.carInfoFrame)
+        self.gridLayout_11.setObjectName(u"gridLayout_11")
+        self.gridLayout_11.setContentsMargins(9, 9, 9, 9)
+        self.vehiclePictureLabel = QLabel(self.carInfoFrame)
+        self.vehiclePictureLabel.setObjectName(u"vehiclePictureLabel")
+        sizePolicy.setHeightForWidth(self.vehiclePictureLabel.sizePolicy().hasHeightForWidth())
+        self.vehiclePictureLabel.setSizePolicy(sizePolicy)
+        self.vehiclePictureLabel.setMinimumSize(QSize(180, 180))
+        self.vehiclePictureLabel.setMaximumSize(QSize(210, 210))
+        self.vehiclePictureLabel.setPixmap(QPixmap(u"uiPictures/OXZ915.png"))
+        self.vehiclePictureLabel.setScaledContents(True)
+
+        self.gridLayout_11.addWidget(self.vehiclePictureLabel, 0, 0, 1, 1)
+
+        self.carInfoLabel = QLabel(self.carInfoFrame)
+        self.carInfoLabel.setObjectName(u"carInfoLabel")
+        sizePolicy.setHeightForWidth(self.carInfoLabel.sizePolicy().hasHeightForWidth())
+        self.carInfoLabel.setSizePolicy(sizePolicy)
+        self.carInfoLabel.setMinimumSize(QSize(180, 50))
+        self.carInfoLabel.setMaximumSize(QSize(230, 50))
+        font8 = QFont()
+        font8.setPointSize(14)
+        self.carInfoLabel.setFont(font8)
+        self.carInfoLabel.setStyleSheet(u"color: rgb(255, 255, 255);")
+        self.carInfoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_11.addWidget(self.carInfoLabel, 1, 0, 1, 1)
+
+
+        self.gridLayout_9.addWidget(self.carInfoFrame, 0, 6, 1, 1)
+
+        self.horizontalSpacer_12 = QSpacerItem(10, 0, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_12, 0, 2, 1, 1)
 
         self.lenderInfoFrame = QFrame(self.lendPageMainFrame)
         self.lenderInfoFrame.setObjectName(u"lenderInfoFrame")
@@ -470,7 +484,7 @@ class Ui_MainWindow(object):
         self.lenderInfoFrame.setLineWidth(1)
         self.gridLayout_10 = QGridLayout(self.lenderInfoFrame)
         self.gridLayout_10.setObjectName(u"gridLayout_10")
-        self.gridLayout_10.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_10.setContentsMargins(9, 9, 9, 9)
         self.lenderPictureLabel = QLabel(self.lenderInfoFrame)
         self.lenderPictureLabel.setObjectName(u"lenderPictureLabel")
         self.lenderPictureLabel.setEnabled(True)
@@ -490,7 +504,7 @@ class Ui_MainWindow(object):
         self.lenderNameLabel.setSizePolicy(sizePolicy)
         self.lenderNameLabel.setMinimumSize(QSize(180, 50))
         self.lenderNameLabel.setMaximumSize(QSize(230, 50))
-        self.lenderNameLabel.setFont(font7)
+        self.lenderNameLabel.setFont(font6)
         self.lenderNameLabel.setStyleSheet(u"color: rgb(255, 255, 255);")
         self.lenderNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -515,7 +529,11 @@ class Ui_MainWindow(object):
         self.gridLayout_10.addWidget(self.ssnLineEdit, 2, 0, 1, 1)
 
 
-        self.gridLayout_9.addWidget(self.lenderInfoFrame, 0, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.lenderInfoFrame, 0, 1, 1, 1)
+
+        self.horizontalSpacer_11 = QSpacerItem(10, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_11, 0, 7, 1, 1)
 
 
         self.gridLayout_7.addWidget(self.lendPageMainFrame, 2, 0, 1, 1)
@@ -534,6 +552,7 @@ class Ui_MainWindow(object):
         self.returnCarFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.gridLayout = QGridLayout(self.returnCarFrame)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setContentsMargins(-1, -1, 9, -1)
         self.keyPictureReturnLabel = QLabel(self.returnCarFrame)
         self.keyPictureReturnLabel.setObjectName(u"keyPictureReturnLabel")
         self.keyPictureReturnLabel.setEnabled(True)
@@ -549,7 +568,7 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.keyReturnBarcodeLineEdit.sizePolicy().hasHeightForWidth())
         self.keyReturnBarcodeLineEdit.setSizePolicy(sizePolicy4)
         self.keyReturnBarcodeLineEdit.setMaximumSize(QSize(180, 50))
-        self.keyReturnBarcodeLineEdit.setFont(font7)
+        self.keyReturnBarcodeLineEdit.setFont(font6)
         self.keyReturnBarcodeLineEdit.setStyleSheet(u"background-color: rgb(208, 208, 208);")
         self.keyReturnBarcodeLineEdit.setFrame(False)
         self.keyReturnBarcodeLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -568,19 +587,19 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.returnCarFrame, 1, 1, 1, 1)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer = QSpacerItem(0, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.gridLayout_6.addItem(self.verticalSpacer, 0, 1, 1, 1)
 
-        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_5 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_6.addItem(self.horizontalSpacer_5, 1, 0, 1, 1)
 
-        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_6 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_6.addItem(self.horizontalSpacer_6, 1, 2, 1, 1)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer_2 = QSpacerItem(0, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.gridLayout_6.addItem(self.verticalSpacer_2, 2, 1, 1, 1)
 
@@ -594,7 +613,7 @@ class Ui_MainWindow(object):
         self.bottomFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.horizontalLayout_3 = QHBoxLayout(self.bottomFrame)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_3 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
 
@@ -618,7 +637,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.okPushButton)
 
-        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_4 = QSpacerItem(40, 0, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_4)
 
@@ -683,8 +702,6 @@ class Ui_MainWindow(object):
         self.returnCarPushButton.setText(QCoreApplication.translate("MainWindow", u"PALAUTA", None))
         self.reasonComboBox.setCurrentText("")
         self.reasonComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Ajon tarkoitus", None))
-        self.carInfoLabel.setText(QCoreApplication.translate("MainWindow", u"Merkki ja malli", None))
-        self.vehiclePictureLabel.setText("")
         self.registerPlateBGLabel.setText("")
         self.keyBarcodeLineEdit.setText("")
         self.keyBarcodeLineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Lue avain", None))
@@ -693,6 +710,8 @@ class Ui_MainWindow(object):
         self.calendarLabel.setText("")
         self.timeLabel.setText("")
         self.clockLabel.setText("")
+        self.vehiclePictureLabel.setText("")
+        self.carInfoLabel.setText(QCoreApplication.translate("MainWindow", u"Merkki ja malli", None))
         self.lenderPictureLabel.setText("")
         self.lenderNameLabel.setText(QCoreApplication.translate("MainWindow", u"Lainaajan nimi", None))
         self.ssnLineEdit.setText("")
