@@ -313,7 +313,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Näytetään lainaukseen liittyvät kehykset ja tiedot
         self.ui.timeFrame.show()
-        self.layoutManager("carInfoFrame", 0, 1)
+        self.layoutManager("carInfoFrame", 0, 3)
         self.ui.carInfoFrame.show()
         self.ui.okPushButton.show()
         self.ui.statusbar.showMessage('Jos tiedot ovat oikein paina OK')
