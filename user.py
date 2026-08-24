@@ -71,7 +71,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.takeCarPushButton.clicked.connect(self.activateReason)
 
         # Kun ajon syy on valittu, kutsutaan activateLender-metodi
-        self.ui.reasonComboBox.currentIndexChanged.connect(self.activateLender)
+        # self.ui.reasonComboBox.currentIndexChanged.connect(self.activateLender)
+
+        # Kun ajon syy on valittu, kutsutaan activateLender-metodi
+        self.ui.reasonComboBox.activated.connect(self.activateLender)
 
         # Kun ajokortin viivakoodi on luettu, kutsutaan activateKey-metodia
         self.ui.ssnLineEdit.returnPressed.connect(self.activateKey)
@@ -125,6 +128,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.carRegisterFrame.hide()
         self.ui.timeFrame.hide()
         self.ui.carInfoFrame.hide()
+        self.ui.statusLabel.hide()
 
         # Tyhjennetään syöttökentät
         self.ui.keyBarcodeLineEdit.clear()
@@ -437,6 +441,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Näytetään palautkseen liityvä kehys ja sen sisältö
         self.ui.bottomFrame.show()
+        self.ui.statusLabel.show()
         self.ui.statusLabel.setText('Auton palautus')
         self.ui.keyPictureReturnLabel.show()
         self.ui.registerPlateBGReturnLabel.show()
