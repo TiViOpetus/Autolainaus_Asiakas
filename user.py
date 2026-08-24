@@ -34,6 +34,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Kutsutaan käyttöliittymän muodostusmetodia setupUi
         self.ui.setupUi(self)
+
+        # Asetetaan stackedWidgetin indexi 0 (mainPage) kun ohjelma aukeaa
+        self.ui.stackedWidget.setCurrentIndex(0)
    
         # Rutiini, joka lukee asetukset, jos ne ovat olemassa
         try:
@@ -306,6 +309,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Näytetään lainaukseen liittyvät kehykset ja tiedot
         self.ui.timeFrame.show()
+        self.layoutManager("carInfoFrame", 0, 1)
         self.ui.carInfoFrame.show()
         self.ui.okPushButton.show()
         self.ui.statusbar.showMessage('Jos tiedot ovat oikein paina OK')
@@ -589,6 +593,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         msgBox.setDetailedText(detailedText)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.exec()
+
+    # UI elementtien siirto kehysken sisällä
+    def layoutManager(self, frameName, newRow, newCollumn, rowSpan=1, columnSpan=1):
+        """Allowes moving UI elements from a slot to another slot within a grid layout
+
+        Args:
+            frameName (str): The name of the frame that needs adjustments
+            newRow (int): The new row position
+            newColumn (int): The new column position
+            rowSpan (int): How many rows the widget spans (default is 1)
+            columnSpan (int): How many columns the widget spans (default is 1)
+        """
+        widget = getattr(self.ui, frameName)
+        layout = widget.parentWidget().layout()
+        layout.removeWidget(widget)
+        layout.addWidget(widget, newRow, newCollumn, rowSpan, columnSpan)
 
 # LUODAAN VARSINAINEN SOVELLUS
 # ============================
