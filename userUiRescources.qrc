@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="pictures">
+    <file>uiPictures/plateBGEmpty.png</file>
     <file>uiPictures/defaultVehicles.png</file>
     <file>uiPictures/back.png</file>
     <file>uiPictures/clock.png</file>
