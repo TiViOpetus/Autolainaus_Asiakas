@@ -1044,7 +1044,7 @@ color: rgb(32, 75, 70);</string>
               </size>
              </property>
              <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
+              <enum>QFrame::Shape::NoFrame</enum>
              </property>
              <property name="frameShadow">
               <enum>QFrame::Shadow::Plain</enum>

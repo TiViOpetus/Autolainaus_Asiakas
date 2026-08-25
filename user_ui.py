@@ -434,7 +434,7 @@ class Ui_MainWindow(object):
         self.carInfoFrame.setSizePolicy(sizePolicy)
         self.carInfoFrame.setMinimumSize(QSize(260, 360))
         self.carInfoFrame.setMaximumSize(QSize(360, 460))
-        self.carInfoFrame.setFrameShape(QFrame.Shape.Box)
+        self.carInfoFrame.setFrameShape(QFrame.Shape.NoFrame)
         self.carInfoFrame.setFrameShadow(QFrame.Shadow.Plain)
         self.gridLayout_11 = QGridLayout(self.carInfoFrame)
         self.gridLayout_11.setObjectName(u"gridLayout_11")
